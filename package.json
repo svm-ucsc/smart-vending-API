@@ -1,0 +1,27 @@
+{
+    "name": "smv-fastify",
+    "version": "1.0.0",
+    "description": "The node server for the SMV API",
+    "main": "app.js",
+    "scripts": {
+        "pretest": "standard",
+        "lint": "standard --fix",
+        "start": "fastify start -a 0.0.0.0 -l info app.js",
+        "dev": "fastify start -w -l info -P app.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "fastify": "^3.0.0",
+        "fastify-autoload": "^3.10.0",
+        "fastify-cli": "^2.15.0",
+        "fastify-plugin": "^3.0.0",
+        "fastify-sensible": "^3.1.2",
+        "@aws-sdk/client-dynamodb": "^3.51.0"
+    },
+    "devDependencies": {
+        "tap": "^15.1.6",
+        "standard": "^11.0.1"
+    }
+}
