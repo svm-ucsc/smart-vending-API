@@ -1,18 +1,12 @@
-# Smart Vending Machine UI and Node server
+# Smart Vending Machine Server
 
 ## Project Structure
 
     .
-    ├── client                  # Vue client code
-    │   ├── public              # Public facing assets used by Vue
-    │   ├── src                 # All Vue source code
-    │   ├── vue.config.js       # Config file for Vue build artifacts
-    │   ├── package.json   
-    ├── server                  # Fastify server
-    │   ├── plugins             # Managed plugins for Fastify
-    │   ├── public              # Build folder copied in by Vue's build
-    │   ├── routes              # Folder structure creates route structure
-    │   ├── app.js              # Main server app
+    ├── plugins             # Managed plugins for Fastify
+    ├── public              # Build folder copied in by Vue's build
+    ├── routes              # Folder structure creates route structure
+    ├── app.js              # Main server app
     ├── package.json            
     └── README.md
 
