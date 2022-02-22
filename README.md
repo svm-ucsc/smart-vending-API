@@ -1,20 +1,24 @@
-# Smart Vending Machine UI and Node server
+# Smart Vending Machine API server
 
 ## Project Structure
 
     .
+    ├── .github/workflows
+    │   ├── CICD.yml        # github actions workflow
     ├── plugins             # Managed plugins for Fastify
-    ├── public              # Build folder copied in by Vue's build
     ├── routes              # Folder structure creates route structure
+    │   ├── items           # /items route
+    │   │   ├── index.js    # the js code executed when the /items route is called
+    │   ├── root.js         # the js code executed when the / routs is called
     ├── app.js              # Main server app
     ├── package.json            
     └── README.md
 
 ## Project Setup
 
-### Run npm install in the root directory and client directory.
+### Run npm install
 
-`npm i && cd client && npm i && cd ..`
+`npm i`
 
 ### Set up your AWS credentials
 
@@ -22,71 +26,23 @@ The website makes API call which involve pulling data from DynamoDB. In order to
 
 ## How to...
 
-### Work on the server (fastify)
-
-1. Build the static Vue assets for prod\
-`smart-vending-machine-ui: npm run build`
-
-2. Start the fastify server in dev mode\
-`smart-vending-machine-ui: npm run dev`
-
-3. Open [http://localhost:3000](http://localhost:3000)
-
-4. Edit anything in the `server` directory, and the server will automatically refresh
-
-### Work on the front end (Vue)
+### Work on the server
 
 1. Start the fastify server in dev mode\
-`smart-vending-machine-ui: npm run dev`\
-*note: you need to run `npm run build` at least once before to populate the `server/public` directory*
+`npm run dev`
 
-2. Start the client server in dev mode\
-Open a new terminal\
-`smart-vending-machine-ui: cd client`\
-`smart-vending-machine-ui/client: npm run serve`
+2. Open [http://localhost:3000](http://localhost:3000)
 
-3. Open [http://localhost:8080](http://localhost:8080)
-
-4. Edit anything in the `client` directory, and the server will automatically refresh
-
-### Work on both at the same time
-
-Follow the instructions in **Work on the front end (Vue)**.\
-You are also able make changes to the `server` directory, and the server will automatically refresh.
+3. The server will automatically refresh with file changes
 
 ## Available Scripts
 
-### Client
-
-#### `npm run serve`
-
-Starts a Vue app server in dev mode.\
-Open [http://localhost:8080](http://localhost:8080) to view it in the browser.
-
-**All API calls will be routed to the fastify server on [http://localhost:3000](http://localhost:3000)**.\
-ex. A call to `/items` will be routed to `localhost:3000/items`.
-
-#### `npm run build`
-
-Builds the Vue project for prod and copies its contents into the server/public directory.
-This is the same as running `npm run build` in the `root` directory.
-
-#### `npm run lint`
-
-Runs the linter on all Vue code.
-
 ### Server (root)
-
-#### `npm run build`
-
-Builds the Vue project for prod and copies its contents into the server/public directory.\
-This is the same as running `npm run build` in the `client` directory.
 
 #### `npm run dev`
 
 Starts the fastify server in dev mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.\
-You need to populate the `public` directory using `npm run build` for this to work.
 
 #### `npm start`
 
