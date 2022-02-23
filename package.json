@@ -13,12 +13,13 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@aws-sdk/client-dynamodb": "^3.51.0",
         "fastify": "^3.0.0",
         "fastify-autoload": "^3.10.0",
         "fastify-cli": "^2.15.0",
         "fastify-plugin": "^3.0.0",
         "fastify-sensible": "^3.1.2",
-        "@aws-sdk/client-dynamodb": "^3.51.0"
+        "mqtt": "^4.3.6"
     },
     "devDependencies": {
         "tap": "^15.1.6",
