@@ -3,16 +3,6 @@
 const fp = require('fastify-plugin')
 const mqtt = require('mqtt')
 
-function decorateFastifyInstance (fastify, mqttClient, options, next) {
-  fastify.addHook('onClose', () => mqttClient.end())
-
-  if (!fastify.mqtt) {
-    fastify.decorate('mqtt', mqttClient)
-  }
-
-  next()
-}
-
 function fastifyMQTT (fastify, options, next) {
   const host = options.host
   delete options.host
@@ -30,7 +20,14 @@ function fastifyMQTT (fastify, options, next) {
     this.mqttClient.end()
   })
 
-  decorateFastifyInstance(fastify, mqttClient, {}, next)
+  fastify.addHook('onClose', () => mqttClient.end())
+
+  if (!fastify.mqtt) {
+    fastify.decorate('mqtt', mqttClient)
+  }
+
+  next()
+
 }
 
 module.exports = fp(fastifyMQTT, {

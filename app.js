@@ -5,7 +5,7 @@ const AutoLoad = require('fastify-autoload')
 
 module.exports = async function (fastify, opts) {
   // Loads mqtt plugin
-  fastify.register(require('./plugins/mqtt-client.js'), {
+  fastify.register(require('./plugins/fastify-mqtt.js'), {
     host: 'http://ec2-3-87-77-241.compute-1.amazonaws.com:1884',
 
     // mqtt credentials if these are needed to connect
