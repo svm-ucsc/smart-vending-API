@@ -1,22 +1,24 @@
 'use strict'
 
-var mqttHandler = require('./mqtt_handler');
-var api_caller = require('./api_calls');
-const { DynamoDBClient, QueryCommand } = require("@aws-sdk/client-dynamodb");
+const {dynamoHW, dynamoUI} = require('./api_calls')
 
 module.exports = async function (fastify, opts) {
-    var mqttClient = new mqttHandler();
-    mqttClient.connect();
 
     fastify.get('/', async function (request, reply) {
 
-        let item_id = "bussin bussin";
-        var test_caller = new api_caller(item_id);
+        let itemID = 'bussin bussin'
         
-        // const hw_data = test_caller.dynamo_hw();
-        const ui_data = test_caller.dynamo_ui();
+        const params = {
+            TableName : 'items',
+            Key: {
+                item_id: itemID
+            }
+        }
+  
+        const hwData = await dynamoHW(this.dynamo, params)
+        console.log(hwData)
+        const uiData = await dynamoUI(this.dynamo, params)
 
-        return ui_data;
-        // return hw_data;
-    })
+        reply.code(200).send(uiData)
+  })
 }
