@@ -1,24 +1,27 @@
 'use strict'
 
-const { DynamoDBClient, QueryCommand } = require('@aws-sdk/client-dynamodb')
+const schema = {
+  querystring: {
+    type: 'object',
+    properties: {
+      'id': { type: 'string' },
+    },
+    required: ['id']
+  }
+}
 
 module.exports = async function (fastify, opts) {
-  fastify.get('/', async function (request, reply) {
-    const client = new DynamoDBClient({ region: 'us-east-1' })
+  fastify.get('/', { schema }, async function (request, reply) {
 
-    let id = 'd016'
     const params = {
-      'TableName': 'items',
-      'KeyConditionExpression': 'item_id = :id',
-      'ExpressionAttributeValues': {
-        ':id': {'S': id}
+      TableName : 'items',
+      Key: {
+        item_id: request.query.id
       }
     }
 
-    const command = new QueryCommand(params)
+    const response = await this.dynamo.get(params)
 
-    const response = await client.send(command)
-
-    return response.Items
+    reply.code(200).send(response.Item)
   })
 }
