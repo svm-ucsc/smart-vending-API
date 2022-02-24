@@ -4,7 +4,15 @@ const path = require('path')
 const AutoLoad = require('fastify-autoload')
 
 module.exports = async function (fastify, opts) {
-  // Place here your custom code!
+  // Loads mqtt plugin
+  fastify.register(require('./plugins/mqtt-client.js'), {
+    host: 'http://ec2-3-87-77-241.compute-1.amazonaws.com:1884',
+
+    // mqtt credentials if these are needed to connect
+    // TODO: move these to secrets
+    username: 'lenatest',
+    password: 'password'
+  })
 
   // Do not touch the following lines
 
