@@ -4,7 +4,7 @@ const schema = {
   querystring: {
     type: 'object',
     properties: {
-      'id': { type: 'string' },
+      'id': { type: 'string' }
     },
     required: ['id']
   }
@@ -12,9 +12,8 @@ const schema = {
 
 module.exports = async function (fastify, opts) {
   fastify.get('/', { schema }, async function (request, reply) {
-
     const params = {
-      TableName : 'items',
+      TableName: 'items',
       Key: {
         item_id: request.query.id
       }

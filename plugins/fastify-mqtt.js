@@ -16,8 +16,8 @@ function fastifyMQTT (fastify, options, next) {
   let mqttClient = mqtt.connect(host, { username: username, password: password })
 
   mqttClient.on('error', (err) => {
-    console.log(err)
-    this.mqttClient.end()
+    console.error(err)
+    mqttClient.end()
   })
 
   fastify.addHook('onClose', () => mqttClient.end())
@@ -27,7 +27,6 @@ function fastifyMQTT (fastify, options, next) {
   }
 
   next()
-
 }
 
 module.exports = fp(fastifyMQTT, {

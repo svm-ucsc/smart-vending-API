@@ -2,13 +2,13 @@
 
 const fp = require('fastify-plugin')
 const { DynamoDB } = require('@aws-sdk/client-dynamodb')
-const { DynamoDBDocument } = require("@aws-sdk/lib-dynamodb")
+const { DynamoDBDocument } = require('@aws-sdk/lib-dynamodb')
 
 function fastifyDynamoDB (fastify, options, next) {
   const region = options.region
   delete options.region
 
-  const client = new DynamoDB({region: region});
+  const client = new DynamoDB({region: region})
   const ddbDocClient = DynamoDBDocument.from(client)
 
   if (!fastify.dynamo) {
