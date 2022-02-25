@@ -2,7 +2,6 @@
 
 const fp = require('fastify-plugin')
 const mqtt = require('mqtt')
-// const fastJSONStringify = require('fast-json-stringify')
 
 class CustomMqttClient {
   constructor (client) {
