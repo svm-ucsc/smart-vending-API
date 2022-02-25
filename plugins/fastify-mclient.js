@@ -34,8 +34,6 @@ function fastifyCustomMQTTClient (fastify, options, next) {
 
   let customClient = new CustomMqttClient(mqttClient)
 
-  customClient.submitOrder('orderID', 'machineID', 'orderList')
-
   customClient.mqttClient.on('error', (err) => {
     console.log(err)
     customClient.endClient(true)
@@ -43,7 +41,7 @@ function fastifyCustomMQTTClient (fastify, options, next) {
 
   fastify.addHook('onClose', () => customClient.endClient(true))
 
-  if (!fastify.mqtt) {
+  if (!fastify.customMqttClient) {
     fastify.decorate('customMqttClient', customClient)
   }
 
