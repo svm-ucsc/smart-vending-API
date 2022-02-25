@@ -12,7 +12,7 @@ test('support works standalone', async (t) => {
     password: 'password'
   })
   await fastify.ready()
-  t.ok(fastify.customMqtt)
+  t.ok(fastify.customMqttClient)
 
-  fastify.customMqtt.end(true)
+  fastify.customMqttClient.endClient(true)
 })
