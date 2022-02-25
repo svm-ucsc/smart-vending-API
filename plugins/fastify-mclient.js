@@ -11,9 +11,7 @@ class CustomMqttClient {
 
   async submitOrder (orderID, machineID, orderList) {
     const order = {'machineID': machineID, 'orderID': orderID, 'orderList': orderList}
-    console.log('ORDER ' + order)
     const orderJSON = JSON.stringify(order)
-    // const orderJSON = JSON.parse(JSON.stringify(order))
     this.mqttClient.publish(machineID, orderJSON)
   }
 
@@ -33,8 +31,6 @@ function fastifyCustomMQTTClient (fastify, options, next) {
   delete options.password
 
   let mqttClient = mqtt.connect(host, { username: username, password: password })
-
-  console.log('THIS IS THE MQTT CLIENT' + mqttClient)
 
   let customClient = new CustomMqttClient(mqttClient)
 
