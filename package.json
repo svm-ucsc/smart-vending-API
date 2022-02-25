@@ -17,6 +17,7 @@
         "@aws-sdk/client-dynamodb": "^3.51.0",
         "@aws-sdk/lib-dynamodb": "^3.52.0",
         "@aws-sdk/util-dynamodb": "^3.52.0",
+        "fast-json-stringify": "^3.0.3",
         "fastify": "^3.27.2",
         "fastify-autoload": "^3.10.0",
         "fastify-cli": "^2.15.0",
