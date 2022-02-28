@@ -8,7 +8,7 @@ test('all items get', async (t) => {
 
   const res = await app.inject({
     method: 'GET',
-    url: '/item',
+    url: '/item'
   })
   t.ok(JSON.parse(res.payload))
 })
