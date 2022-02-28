@@ -1,10 +1,10 @@
-**items**
+**item**
 ----
-  Returns json data about all items.
+  Returns data about items.
 
 * **URL**
 
-  /items
+  /item
 
 * **Method:**
 
@@ -12,19 +12,16 @@
   
 *  **URL Params**
 
-  None
+  **Optional:**
 
-* **Data Params**
+  `iids=[string,]`
 
-  None
-
-* **Success Response:**
-
-  * **Code:** 200 <br />
-    **Content:** `[{},{},]`
+  `fields=[string,]`
 
 * **Sample Call:**
 
   ```javascript
-    fetch(BASE_URL + "/items", {mode:'no-cors'});
+    const query = '?iids=d016,t002&fields=cost,name'
+    const url = BASE_URL + '/item' + query
+    fetch(url, {mode:'no-cors'});
   ```
