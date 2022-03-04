@@ -26,6 +26,7 @@ module.exports = async function (fastify, opts) {
 
     this.customMqttClient.submitOrder(orderId, machineId, items)
 
-    return reply.code(200).send('Order submitted')
+    return reply.code(200).header('Access-Control-Allow-Origin', '*')
+      .header('Access-Control-Allow-Methods', 'GET').send('Order submitted')
   })
 }
