@@ -36,8 +36,6 @@ module.exports = async function (fastify, opts) {
       onRequest: function (request, reply, next) { next() },
       preHandler: function (request, reply, next) { next() }
     },
-    staticCSP: true,
-    transformStaticCSP: (header) => header,
     exposeRoute: true
   })
 
