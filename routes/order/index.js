@@ -1,4 +1,5 @@
 'use strict'
+const { v4 } = require('uuid')
 
 const schema = {
   description: 'Submit an order request. Request may be rejected if invalid.',
@@ -13,7 +14,7 @@ const schema = {
         type: 'object',
         minProperties: 1,
         patternProperties: {
-          '.+': {type: 'number'}
+          '.+': {type: 'integer'}
         }
       }
     }
@@ -28,9 +29,8 @@ const schema = {
     },
     400: {
       description: 'Order placing failed for some reason. The failure reason is returned as a string.',
-      properties: {
-        reason: { type: 'string' }
-      }
+      type: 'object',
+      additionalProperties: true
     }
   }
 
@@ -39,12 +39,76 @@ const schema = {
 module.exports = async function (fastify, opts) {
   fastify.post('/', { schema }, async function (request, reply) {
     const machineId = request.body['machine_id']
-    const items = request.body['items']
+    const orderedItems = request.body['items']
 
-    const orderId = 'order-' + machineId + '-' + Date.now()
+    const inventoryCheckParams = {
+      TableName: 'inventory',
+      Key: {
+        machine_id: machineId
+      },
+      AttributesToGet: ['stock']
+    }
 
-    this.customMqttClient.submitOrder(orderId, machineId, items)
+    const response = await this.dynamo.get(inventoryCheckParams)
+    const stock = response.Item.stock
 
-    return reply.code(200).send('Order submitted')
+    // console.log(orderedItems)
+    // console.log(stock)
+
+    let missingItems = {}
+
+    for (const item in orderedItems) {
+      if(item in stock) {
+        if(orderedItems[item] > stock[item]) {
+          missingItems[item] = {
+            'requested': orderedItems[item],
+            'available': stock[item]
+          } 
+        }
+      } else {
+        missingItems[item] = {
+          'reqested': orderedItems[item],
+          'availible': 0
+        }
+      }
+    }
+    // console.log(missingItems)
+
+    if(Object.keys(missingItems).length == 0) {
+
+      const orderId = v4()
+      this.customMqttClient.submitOrder(orderId, machineId, orderedItems)
+
+      const orderIdCreateParams = {
+        TableName: 'orders',
+        Item: {
+          order_id: orderId,
+          machine_id: machineId,
+          ordered_item: orderedItems,
+          status: 'pending'
+        },
+      }
+
+      const updateStockParams = {
+        TableName: 'inventory',
+        Key: {
+          machine_id: machineId
+        },
+        // TODO: wtf are these and how do i use them
+        AttributeUpdates: {},
+        Expected: {},
+        ExpressionAttributeValues: {}
+      }
+      
+      await this.dynamo.put(orderIdCreateParams)
+
+      return reply.code(200).header('Access-Control-Allow-Origin', '*')
+      .header('Access-Control-Allow-Methods', 'GET').send(orderId)
+    } else {
+      // console.log(missingItems)
+      return reply.code(400).header('Access-Control-Allow-Origin', '*')
+      .header('Access-Control-Allow-Methods', 'GET').send(missingItems)
+    }
+    
   })
 }
