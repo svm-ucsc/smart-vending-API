@@ -1,6 +1,9 @@
 'use strict'
 
 const schema = {
+  description: 'Submit an order request. Request may be rejected if invalid.',
+  tags: ['routes'],
+  summary: 'Places an order',
   body: {
     type: 'object',
     required: ['machine_id', 'items'],
@@ -14,7 +17,23 @@ const schema = {
         }
       }
     }
+  },
+  response: {
+    200: {
+      description: 'Order was placed successfully. The order_id is returned in an object.',
+      type: 'object',
+      properties: {
+        order_id: { type: 'string' }
+      }
+    },
+    400: {
+      description: 'Order placing failed for some reason. The failure reason is returned as a string.',
+      properties: {
+        reason: { type: 'string' }
+      }
+    }
   }
+
 }
 
 module.exports = async function (fastify, opts) {

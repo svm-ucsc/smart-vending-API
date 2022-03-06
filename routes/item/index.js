@@ -1,11 +1,38 @@
 'use strict'
 
 const schema = {
+  description: 'Gets item information.',
+  tags: ['routes'],
+  summary: 'Gets universal item information',
   querystring: {
     type: 'object',
     properties: {
-      mids: { type: ['string', 'array'] },
-      fields: { type: ['string', 'array'] }
+      iids: {
+        type: ['string', 'array'],
+        description: 'Item IDs. Leave blank to get all items.'
+      },
+      fields: {
+        type: ['string', 'array'],
+        description: 'Desired return fields. Leave blank to get all fields.'
+      }
+    }
+  },
+  response: {
+    200: {
+      description: 'Succsesfully got the item data requested. The properties returned depends on the inputed "fields" paramater. The response is always an array, even if there is one or zero items returned.',
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          item_id: { type: 'string' },
+          cost: { type: 'integer' },
+          name: { type: 'string' },
+          nutritional_info: {
+            type: 'object',
+            additionalProperties: true
+          }
+        }
+      }
     }
   }
 }
@@ -35,6 +62,7 @@ module.exports = async function (fastify, opts) {
       }
 
       const response = await this.dynamo.scan(params)
+      console.log(typeof (response.Items[6].nutritional_info))
       reply.code(200).header('Access-Control-Allow-Origin', '*')
         .header('Access-Control-Allow-Methods', 'GET').send(response.Items)
     }
