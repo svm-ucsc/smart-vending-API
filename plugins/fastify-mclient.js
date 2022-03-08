@@ -20,6 +20,49 @@ class CustomMqttClient {
 }
 
 function fastifyCustomMQTTClient (fastify, options, next) {
+
+  async function onMessage(topic, message) {
+    const topicArr = topic.split('/')
+    const machineIDTopic = topicArr[0]
+    const subtopic = topicArr[1]
+
+    if(subtopic == 'status') {
+
+      const updateMachineParams = {
+        TableName: 'inventory',
+        Key: {
+          machine_id: machineIDTopic
+        },
+        UpdateExpression: 'set #st = :er',
+        ExpressionAttributeNames: {
+          '#st': 'status'
+        },
+        ExpressionAttributeValues: {
+          ':er': JSON.parse(message)['status'],
+        },
+      }
+      await fastify.dynamo.update(updateMachineParams)
+
+    } else if(subtopic == 'vendconfirm') {
+      const updateOrderParams = {
+        TableName: 'orders',
+        Key: {
+          order_id: JSON.parse(message)['order_id']
+        },
+        UpdateExpression: 'set #st = :to',
+        ExpressionAttributeNames: {
+          '#st': 'status'
+        },
+        ExpressionAttributeValues: {
+          ':to': 'SUCCESS',
+        },
+      }
+      console.log(updateOrderParams)
+      await fastify.dynamo.update(updateOrderParams)
+    }
+  
+  }
+
   const host = options.host
   delete options.host
 
@@ -30,6 +73,10 @@ function fastifyCustomMQTTClient (fastify, options, next) {
   delete options.password
 
   let mqttClient = mqtt.connect(host, { username: username, password: password })
+
+  mqttClient.subscribe('lenalaptopclient/status')
+  mqttClient.subscribe('lenalaptopclient/vendconfirm')
+  mqttClient.on('message', onMessage)
 
   let customClient = new CustomMqttClient(mqttClient)
 
