@@ -1,15 +1,22 @@
 'use strict'
 
 const fp = require('fastify-plugin')
-const mqtt = require('mqtt')
 
 class CustomMqttClient {
   constructor (client) {
     this.mqttClient = client
   }
 
+  subscribe (topic) {
+    this.mqttClient.subscribe(topic)
+  }
+
+  onMessage (callback) {
+    this.mqttClient.on('message', callback)
+  }
+
   async submitOrder (orderID, machineID, orderList) {
-    const topic = machineID + '/vend'
+    const topic = machineID + '/order/vend'
     const order = JSON.stringify({'orderID': orderID, 'orderList': orderList})
     this.mqttClient.publish(topic, order)
   }
@@ -21,7 +28,7 @@ class CustomMqttClient {
 
 function fastifyCustomMQTTClient (fastify, options, next) {
 
-  async function onMessage(topic, message) {
+  async function onMessageCB(topic, message) {
     const topicArr = topic.split('/')
     const machineIDTopic = topicArr[0]
     const subtopic = topicArr[1]
@@ -43,7 +50,7 @@ function fastifyCustomMQTTClient (fastify, options, next) {
       }
       await fastify.dynamo.update(updateMachineParams)
 
-    } else if(subtopic == 'vendconfirm') {
+    } else if(subtopic == 'order' && topicArr[2] == 'status') {
       const updateOrderParams = {
         TableName: 'orders',
         Key: {
@@ -57,28 +64,17 @@ function fastifyCustomMQTTClient (fastify, options, next) {
           ':to': 'SUCCESS',
         },
       }
-      console.log(updateOrderParams)
+
       await fastify.dynamo.update(updateOrderParams)
     }
   
   }
 
-  const host = options.host
-  delete options.host
+  let customClient = new CustomMqttClient(fastify.mqtt)
 
-  const username = options.username
-  delete options.username
-
-  const password = options.password
-  delete options.password
-
-  let mqttClient = mqtt.connect(host, { username: username, password: password })
-
-  mqttClient.subscribe('lenalaptopclient/status')
-  mqttClient.subscribe('lenalaptopclient/vendconfirm')
-  mqttClient.on('message', onMessage)
-
-  let customClient = new CustomMqttClient(mqttClient)
+  customClient.subscribe('+/status')
+  customClient.subscribe('+/order/status')
+  customClient.onMessage(onMessageCB)
 
   customClient.mqttClient.on('error', (err) => {
     console.log(err)
@@ -96,7 +92,10 @@ function fastifyCustomMQTTClient (fastify, options, next) {
 
 module.exports = fp(fastifyCustomMQTTClient, {
   fastify: '>=1.0.0',
-  name: 'fastify-custom-mqtt-client'
+  name: 'fastify-custom-mqtt-client',
+  decorators: {
+    fastify: ['mqtt', 'config'],
+  },
 })
 
 module.exports.autoload = false

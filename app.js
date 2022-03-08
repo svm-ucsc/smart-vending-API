@@ -4,20 +4,38 @@ const path = require('path')
 const AutoLoad = require('fastify-autoload')
 
 module.exports = async function (fastify, opts) {
+
+  fastify.register(require('fastify-env'), {
+    dotenv: true,
+    schema: {
+      type: 'object',
+      required: [ 'MQTT_HOST', 'MQTT_USERNAME','MQTT_PASSWORD' ],
+      properties: {
+        MQTT_HOST: {
+          type: 'string'
+        },
+        MQTT_USERNAME: {
+          type: 'string'
+        },
+        MQTT_PASSWORD: {
+          type: 'string'
+        },
+      }
+    }
+  })
+
   fastify.register(require('fastify-cors'), { 
     origin: true,
     methods: 'GET,POST'
   })
 
-  // Loads mqtt plugin
-  fastify.register(require('./plugins/fastify-mclient.js'), {
-    host: 'http://ec2-3-87-77-241.compute-1.amazonaws.com:1884',
+  fastify.register(require('./plugins/fastify-mqtt'), parent => ({
+    host: parent.config.MQTT_HOST,
+    username: parent.config.MQTT_USERNAME,
+    password: parent.config.MQTT_PASSWORD
+  }))
 
-    // mqtt credentials if these are needed to connect
-    // TODO: move these to secrets
-    username: 'lenatest',
-    password: 'password'
-  })
+  fastify.register(require('./plugins/fastify-mclient.js'))
 
   fastify.register(require('fastify-swagger'), {
     routePrefix: '/documentation',
