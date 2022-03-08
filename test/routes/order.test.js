@@ -10,7 +10,7 @@ test('all items get', async (t) => {
     method: 'POST',
     url: '/order',
     body: {
-      'machine_id': 'testid',
+      'machine_id': 'lenalaptopclient',
       'items': {'d016': 2, 't002': 3}
     }
   })
