@@ -38,7 +38,7 @@ module.exports = {
       AttributesToGet: ['machine_id', 'status']
     }
     const orderCheckResponse = await dynamo.get(orderCheckParams)
-
+    console.log(orderCheckResponse.Item)
     if (orderCheckResponse.Item && orderCheckResponse.Item.status === 'PENDING') {
       const updateOrderParams = {
         TableName: 'orders',
@@ -54,6 +54,9 @@ module.exports = {
         }
       }
       await dynamo.update(updateOrderParams)
+
+      // HACK - never mark the test client as offline
+      if (orderCheckResponse.Item.machine_id === 'testclient') return
 
       const updateMachineParams = {
         TableName: 'inventory',
