@@ -10,6 +10,10 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
+    env:
+      MQTT_HOST: http://ec2-3-87-77-241.compute-1.amazonaws.com:1884
+      MQTT_USERNAME: lenatest
+      MQTT_PASSWORD: ${{ secrets.LENATEST }} 
     
     strategy: 
       matrix:
