@@ -1,8 +1,5 @@
 name: CI
 
-env: 
-    test-cred: ${{secrets.LENATEST}}
-
 on:
   push:
     branches: [ main ]
