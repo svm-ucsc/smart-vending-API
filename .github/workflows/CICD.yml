@@ -1,8 +1,5 @@
 name: CI
 
-env: 
-    test-cred: ${{secrets.LENATEST}}
-
 on:
   push:
     branches: [ main ]
@@ -20,6 +17,7 @@ jobs:
         node-version: [16.x]
             
     steps:
+      - run: echo "$GITHUB_CONTEXT"
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
