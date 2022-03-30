@@ -29,6 +29,20 @@ module.exports = {
     await dynamo.update(setItemStockParams)
   }, 
 
+  async setMachineStatusFromDB (machineId, status, dynamo) {
+    const setMachineStatusParams  = {
+      TableName: 'inventory',
+      Key: {
+        machine_id: machineId
+      },
+      UpdateExpression: 'set status = :s',
+      ExpressionAttributeValues: {
+        ':s': status
+      }
+    }
+    await dynamo.update(setMachineStatusParams)
+  }, 
+
   async createNewOrder (orderId, machineId, orderedItems, dynamo) {
     const orderIdCreateParams = {
       TableName: 'orders',
