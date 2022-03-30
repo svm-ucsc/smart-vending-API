@@ -21,7 +21,10 @@ module.exports = {
       Key: {
         machine_id: machineId
       },
-      UpdateExpression: `set stock.${itemID}.N = :s`,
+      UpdateExpression: 'set stock.#iid = :s',
+      ExpressionAttributeNames: {
+        '#iid': itemID
+      },
       ExpressionAttributeValues: {
         ':s': stock
       }
@@ -35,7 +38,10 @@ module.exports = {
       Key: {
         machine_id: machineId
       },
-      UpdateExpression: 'set status = :s',
+      UpdateExpression: 'set #st = :s',
+      ExpressionAttributeNames: {
+        '#st': 'status'
+      },
       ExpressionAttributeValues: {
         ':s': status
       }
