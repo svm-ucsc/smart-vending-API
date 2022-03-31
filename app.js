@@ -24,9 +24,9 @@ module.exports = async function (fastify, opts) {
   })
 
   fastify.register(require('fastify-mqtt'), parent => ({
-    host: parent.config.MQTT_HOST,
-    username: parent.config.MQTT_USERNAME,
-    password: parent.config.MQTT_PASSWORD
+    host: 'http://ec2-3-87-77-241.compute-1.amazonaws.com:1884',
+    username: 'lenatest',
+    password: 'password'
   }))
 
   fastify.register(require('./plugins/fastify-mclient.js'))
