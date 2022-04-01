@@ -5,7 +5,7 @@ const AutoLoad = require('fastify-autoload')
 
 module.exports = async function (fastify, opts) {
   fastify.register(require('fastify-env'), {
-    dotenv: true,
+    dotenv: false,
     schema: {
       type: 'object',
       required: [ 'MQTT_HOST', 'MQTT_USERNAME', 'MQTT_PASSWORD' ],
