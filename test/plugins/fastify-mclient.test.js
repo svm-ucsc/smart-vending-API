@@ -32,11 +32,11 @@ test('support works standalone', async (t) => {
     password: parent.config.MQTT_PASSWORD
   }))
 
-  fastify.register(customMqtt, {
-    host: 'http://ec2-3-87-77-241.compute-1.amazonaws.com:1884',
-    username: 'lenatest',
-    password: 'password'
-  })
+  fastify.register(customMqtt, parent => ({
+    host: parent.config.MQTT_HOST,
+    username: parent.config.MQTT_USERNAME,
+    password: parent.config.MQTT_PASSWORD
+  }))
   await fastify.ready()
   t.ok(fastify.customMqttClient)
 
