@@ -20,9 +20,6 @@
         "fastify": "^3.27.2",
         "fastify-autoload": "^3.10.0",
         "fastify-cli": "^2.15.0",
-        "fastify-cors": "^6.0.3",
-        "fastify-env": "^2.1.1",
-        "fastify-mqtt": "^1.0.0",
         "fastify-plugin": "^3.0.0",
         "fastify-sensible": "^3.1.2",
         "fastify-swagger": "^4.17.0"

@@ -113,7 +113,7 @@ module.exports = async function (fastify, opts) {
     const timoutMS = 5000
     setTimeout(orderTimeout, timoutMS, this.dynamo, orderId)
 
-    // 5. RETURN ORDER ID
-    return reply.code(200).send(orderId)
+    return reply.code(200).header('Access-Control-Allow-Origin', '*')
+      .header('Access-Control-Allow-Methods', 'POST').send('Order submitted')
   })
 }
