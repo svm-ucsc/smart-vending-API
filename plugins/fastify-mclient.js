@@ -1,22 +1,15 @@
 'use strict'
 
 const fp = require('fastify-plugin')
+const mqtt = require('mqtt')
 
 class CustomMqttClient {
   constructor (client) {
     this.mqttClient = client
   }
 
-  subscribe (topic) {
-    this.mqttClient.subscribe(topic)
-  }
-
-  onMessage (callback) {
-    this.mqttClient.on('message', callback)
-  }
-
   async submitOrder (orderID, machineID, orderList) {
-    const topic = machineID + '/order/vend'
+    const topic = machineID + '/vend'
     const order = JSON.stringify({'orderID': orderID, 'orderList': orderList})
     this.mqttClient.publish(topic, order)
   }
@@ -27,53 +20,18 @@ class CustomMqttClient {
 }
 
 function fastifyCustomMQTTClient (fastify, options, next) {
-  async function onMessageCB (topic, message) {
-    const topicArr = topic.split('/')
+  const host = options.host
+  delete options.host
 
-    if (topicArr.length < 2) return
+  const username = options.username
+  delete options.username
 
-    if (topicArr[1] === 'status') {
-      // machine status updates
-      const updateMachineParams = {
-        TableName: 'inventory',
-        Key: {
-          machine_id: topicArr[0]
-        },
-        UpdateExpression: 'set #st = :er',
-        ExpressionAttributeNames: {
-          '#st': 'status'
-        },
-        ExpressionAttributeValues: {
-          ':er': JSON.parse(message)['status']
-        }
-      }
+  const password = options.password
+  delete options.password
 
-      await fastify.dynamo.update(updateMachineParams)
-    } else if (topicArr[1] === 'order' && topicArr[2] === 'status') {
-      // order status updates
-      const updateOrderParams = {
-        TableName: 'orders',
-        Key: {
-          order_id: JSON.parse(message)['order_id']
-        },
-        UpdateExpression: 'set #st = :to',
-        ExpressionAttributeNames: {
-          '#st': 'status'
-        },
-        ExpressionAttributeValues: {
-          ':to': JSON.parse(message)['status']
-        }
-      }
+  let mqttClient = mqtt.connect(host, { username: username, password: password })
 
-      await fastify.dynamo.update(updateOrderParams)
-    }
-  }
-
-  let customClient = new CustomMqttClient(fastify.mqtt)
-
-  customClient.subscribe('+/status')
-  customClient.subscribe('+/order/status')
-  customClient.onMessage(onMessageCB)
+  let customClient = new CustomMqttClient(mqttClient)
 
   customClient.mqttClient.on('error', (err) => {
     console.log(err)
@@ -91,11 +49,7 @@ function fastifyCustomMQTTClient (fastify, options, next) {
 
 module.exports = fp(fastifyCustomMQTTClient, {
   fastify: '>=1.0.0',
-  name: 'fastify-custom-mqtt-client',
-  decorators: {
-    fastify: ['mqtt', 'config']
-  },
-  dependencies: ['fastify-mqtt']
+  name: 'fastify-custom-mqtt-client'
 })
 
 module.exports.autoload = false

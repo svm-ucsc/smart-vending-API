@@ -1,3 +1,4 @@
+
 name: CI
 
 on:
@@ -7,24 +8,12 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
-    env:
-      MQTT_HOST: http://ec2-3-87-77-241.compute-1.amazonaws.com:1884
-      MQTT_USERNAME: lenatest
-      MQTT_PASSWORD: ${{ secrets.LENATEST }} 
     
     strategy: 
       matrix:
         node-version: [16.x]
             
     steps:
-      - name: create .env with gh workflow
-        run: |
-          touch .env
-          echo MQTT_HOST='http://ec2-3-87-77-241.compute-1.amazonaws.com:1884' >> .env
-          echo MQTT_USERNAME='lenatest' >> .env
-          echo MQTT_PASSWORD='${{ secrets.LENATEST }}' >> .env 
-          cat .env
-      - run: echo "$GITHUB_CONTEXT"
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
