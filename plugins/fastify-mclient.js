@@ -93,7 +93,7 @@ module.exports = fp(fastifyCustomMQTTClient, {
   fastify: '>=1.0.0',
   name: 'fastify-custom-mqtt-client',
   decorators: {
-    fastify: ['mqtt', 'config']
+    fastify: ['mqtt']
   },
   dependencies: ['fastify-mqtt']
 })
