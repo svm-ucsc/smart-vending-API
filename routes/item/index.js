@@ -27,6 +27,7 @@ const schema = {
           item_id: { type: 'string' },
           cost: { type: 'integer' },
           name: { type: 'string' },
+          image_url: { type: 'string' },
           nutritional_info: {
             type: 'object',
             additionalProperties: true
