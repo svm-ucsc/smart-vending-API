@@ -6,11 +6,14 @@ const customMqtt = require('../../plugins/fastify-mclient')
 
 test('support works standalone', async (t) => {
   const fastify = Fastify()
-  fastify.register(customMqtt, {
-    host: 'http://ec2-3-87-77-241.compute-1.amazonaws.com:1884',
+  
+  fastify.register(require('fastify-mqtt'), {
+    host: 'http://ec2-3-87-77-241.compute-1.amazonaws.com:1884/',
     username: 'lenatest',
     password: 'password'
   })
+
+  fastify.register(customMqtt)
   await fastify.ready()
   t.ok(fastify.customMqttClient)
 
