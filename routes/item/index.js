@@ -30,7 +30,8 @@ const schema = {
           nutritional_info: {
             type: 'object',
             additionalProperties: true
-          }
+          },
+          nutrition_url: { type: 'string' }
         }
       }
     }
