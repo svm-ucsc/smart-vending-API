@@ -1,6 +1,7 @@
 'use strict'
 const { setMachineStatusFromDB } = require('../util')
 const { v4 } = require('uuid')
+const order = require('../../order')
 
 const schema = {
     description: 'DynamoDB admin functions. Change status of a machine',
@@ -18,7 +19,7 @@ const schema = {
             description: 'Updating the machine status success.',
             type: 'object',
             properties: {
-                order_id: { type: 'string' }
+                machine_status: { type: 'string' }
             }
         }
     },
@@ -34,15 +35,24 @@ module.exports = async function (fastify, opts) {
         const machineId = request.body['machine_id']
     }
 
-    const inventoryCheckParams = {
-        TableName: 'iventory',
+    const statusCheckParams = {
+        TableName: 'inventory',
         Key: {
-
+            machine_id: machineId
         },
-        AttributesToGet: ['', '']
+        AttributesToGet: ['status']
+    }
+    const statusCheckResponse = await dynamo.get(statusCheckParams)
+    console.log(statusCheckResponse.status)
+    if (statusCheckResponse.status == null) {
+        return reply.code(400).send({
+            reason: 'Machine Status field does not exist'
+        })
     }
 
     // SET MACHINE STATUS IN DB
     await setMachineStatusFromDB(machineId, , this.dynamo)
-    return reply.code(200).send();
+    statusCheckResponse = await dynamo.get(statusCheckParams)
+    console.log(statusCheckResponse.status)
+    return reply.code(200).send(statusCheckResponse.status);
 }
