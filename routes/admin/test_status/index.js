@@ -22,12 +22,12 @@ const schema = {
             properties: {
                 machine_status: { type: 'string' }
             }
+        },
+        400: {
+            description: 'Updating the machine status failed, Failure reason returned as string.',
+            type: 'object',
+            additionalProperties: true
         }
-    },
-    400: {
-        description: 'Updating the machine status failed, Failure reason returned as string.',
-        type: 'object',
-        additionalProperties: true
     }
 }
 
