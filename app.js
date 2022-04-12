@@ -4,7 +4,6 @@ const path = require('path')
 const AutoLoad = require('fastify-autoload')
 
 module.exports = async function (fastify, opts) {
-  
   fastify.register(require('fastify-mqtt'), {
     host: 'http://ec2-3-87-77-241.compute-1.amazonaws.com:1884/',
     username: 'lenatest',
