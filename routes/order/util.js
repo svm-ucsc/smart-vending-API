@@ -75,7 +75,7 @@ module.exports = {
     }
   },
 
-  async getItemInfo (itemId) {
+  async getItemInfo (itemId, dynamo) {
     const itemCheckParams = {
       TableName: 'items',
       Key: {
@@ -84,16 +84,14 @@ module.exports = {
       AttributesToGet: ['volume', 'weight']
     }
 
-    itemCheckResponse = await dynamo.get(itemCheckParams)
+    const itemCheckResponse = await dynamo.get(itemCheckParams)
 
     if (!itemCheckResponse.Item) {
-      return reply(400).send({
-        reason: "Item does not exist in DB"
-      })
+      return null
     }
 
-    let weight = itemCheckResponse.Item.weight
-    let volume = itemCheckResponse.Item.volume
+    const weight = itemCheckResponse.Item.weight
+    const volume = itemCheckResponse.Item.volume
 
     return {itemWeight: weight, itemVolume: volume}
   },

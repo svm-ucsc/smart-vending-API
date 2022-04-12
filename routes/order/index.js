@@ -81,8 +81,13 @@ module.exports = async function (fastify, opts) {
           }
         } else if (orderedItems[item] < stock[item]) {
           stock[item] = stock[item] - orderedItems[item]
-          itemInfo = getItemInfo(item)
-          machineOrder = createMachineOrder(machineOrder, item, orderedItems[item], itemInfo, itemLocation[item]) 
+          itemInfo = getItemInfo(item, this.dynamo)
+          if (!itemInfo) {
+            return reply.code(400).send({
+              reason: 'item_id could not be found'
+            })
+          }
+          machineOrder = createMachineOrder(machineOrder, item, orderedItems[item], itemInfo, itemLocation[item])
         } else {
           delete itemLocation[item]
           delete stock[item]
@@ -113,7 +118,7 @@ module.exports = async function (fastify, opts) {
     await createNewOrder(orderId, machineId, orderedItems, this.dynamo)
 
     // 3. SEND ORDER TO BROKER
-    this.customMqttClient.submitOrder(machineOrder)
+    this.customMqttClient.submitOrder(machineId, machineOrder)
 
     // 4. CREATE ORDER TIMEOUT TASK
     const timoutMS = 5000
