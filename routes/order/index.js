@@ -1,5 +1,5 @@
 'use strict'
-const { removeStockFromDB, createNewOrder, orderTimeout } = require('./util')
+const { removeStockFromDB, createNewOrder, orderTimeout, getItemInfo, createMachineOrder } = require('./util')
 const { v4 } = require('uuid')
 
 const schema = {
@@ -47,7 +47,7 @@ module.exports = async function (fastify, opts) {
       Key: {
         machine_id: machineId
       },
-      AttributesToGet: ['status', 'stock']
+      AttributesToGet: ['status', 'stock', 'item_location']
     }
 
     const inventoryCheckResponse = await this.dynamo.get(inventoryCheckParams)
@@ -67,7 +67,10 @@ module.exports = async function (fastify, opts) {
     }
 
     let stock = inventoryCheckResponse.Item.stock
+    let itemLocation = inventoryCheckResponse.Item.item_location
     let missingItems = {}
+    let itemInfo = {}
+    let machineOrder = {}
 
     for (const item in orderedItems) {
       if (item in stock) {
@@ -78,7 +81,10 @@ module.exports = async function (fastify, opts) {
           }
         } else if (orderedItems[item] < stock[item]) {
           stock[item] = stock[item] - orderedItems[item]
+          itemInfo = getItemInfo(item)
+          machineOrder = createMachineOrder(machineOrder, item, orderedItems[item], itemInfo, itemLocation[item]) 
         } else {
+          delete itemLocation[item]
           delete stock[item]
         }
       } else {
@@ -107,7 +113,7 @@ module.exports = async function (fastify, opts) {
     await createNewOrder(orderId, machineId, orderedItems, this.dynamo)
 
     // 3. SEND ORDER TO BROKER
-    this.customMqttClient.submitOrder(orderId, machineId, orderedItems)
+    this.customMqttClient.submitOrder(machineOrder)
 
     // 4. CREATE ORDER TIMEOUT TASK
     const timoutMS = 5000

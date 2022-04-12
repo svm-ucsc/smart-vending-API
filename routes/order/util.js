@@ -73,6 +73,34 @@ module.exports = {
       }
       await dynamo.update(updateMachineParams)
     }
+  },
+
+  async getItemInfo (itemId) {
+    const itemCheckParams = {
+      TableName: 'items',
+      Key: {
+        item_id: itemId
+      },
+      AttributesToGet: ['volume', 'weight']
+    }
+
+    itemCheckResponse = await dynamo.get(itemCheckParams)
+
+    if (!itemCheckResponse.Item) {
+      return reply(400).send({
+        reason: "Item does not exist in DB"
+      })
+    }
+
+    let weight = itemCheckResponse.Item.weight
+    let volume = itemCheckResponse.Item.volume
+
+    return {itemWeight: weight, itemVolume: volume}
+  },
+
+  async createMachineOrder (machineOrder, itemID, itemQuantity, itemInfo, itemLocation) {
+    machineOrder[itemID] = {quantity: itemQuantity, weight: itemInfo.itemWeight, volume: itemInfo.itemVolume, row: itemLocation.row, column: itemLocation.column}
+    return machineOrder
   }
 
 }
