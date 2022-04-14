@@ -15,10 +15,10 @@ class CustomMqttClient {
     this.mqttClient.on('message', callback)
   }
 
-  async submitOrder (machineID, machineOrder) {
+  async submitOrder (orderID, machineID, machineOrder) {
     const topic = machineID + '/order/vend'
-    JSON.stringify(machineOrder)
-    this.mqttClient.publish(topic, machineOrder)
+    const order = JSON.stringify({'orderID' : orderID, 'orderList' : machineOrder})  
+    this.mqttClient.publish(topic, order)
   }
 
   endClient (force) {

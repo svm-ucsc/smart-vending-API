@@ -66,9 +66,10 @@ module.exports = async function (fastify, opts) {
       })
     }
 
+    let missingItems = {}
+
     let stock = inventoryCheckResponse.Item.stock
     let itemLocation = inventoryCheckResponse.Item.item_location
-    let missingItems = {}
     let itemInfo = {}
     let machineOrder = {}
 
@@ -81,15 +82,7 @@ module.exports = async function (fastify, opts) {
           }
         } else if (orderedItems[item] < stock[item]) {
           stock[item] = stock[item] - orderedItems[item]
-          itemInfo = getItemInfo(item, this.dynamo)
-          if (!itemInfo) {
-            return reply.code(400).send({
-              reason: 'item_id could not be found'
-            })
-          }
-          machineOrder = createMachineOrder(machineOrder, item, orderedItems[item], itemInfo, itemLocation[item])
         } else {
-          delete itemLocation[item]
           delete stock[item]
         }
       } else {
@@ -110,6 +103,19 @@ module.exports = async function (fastify, opts) {
 
     // Validation complete
 
+    // Create a machine order dictionary
+    for (const item in orderedItems) {
+      itemInfo = getItemInfo(item, this.dynamo)
+      if (!itemInfo) {
+        return reply.code(400).send({
+          reason: 'item_id could not be found',
+          missingID: item
+        })
+      } else {
+        machineOrder = createMachineOrder(machineOrder, item, orderedItems[item], itemInfo, itemLocation[item])
+      }
+    }
+
     // 1. REMOVE STOCK FROM MACHINE IN DB
     await removeStockFromDB(machineId, stock, this.dynamo)
 
@@ -118,7 +124,7 @@ module.exports = async function (fastify, opts) {
     await createNewOrder(orderId, machineId, orderedItems, this.dynamo)
 
     // 3. SEND ORDER TO BROKER
-    this.customMqttClient.submitOrder(machineId, machineOrder)
+    this.customMqttClient.submitOrder(orderId, machineId, machineOrder)
 
     // 4. CREATE ORDER TIMEOUT TASK
     const timoutMS = 5000
