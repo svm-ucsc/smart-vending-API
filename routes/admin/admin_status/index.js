@@ -24,7 +24,7 @@ const schema = {
     400: {
       description: 'Updating the machine status failed, Failure reason returned as string.',
       type: 'object',
-      additionalProperties: true
+      additionalProperties: false
     }
   }
 }

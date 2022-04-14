@@ -21,7 +21,7 @@ const schema = {
     400: {
       description: 'Updating the item of a machine, failed.',
       type: 'object',
-      additionalProperties: true
+      additionalProperties: false
     }
   }
 }
