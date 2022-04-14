@@ -46,7 +46,7 @@ module.exports = async function (fastify, opts) {
         
         const statusCheckResponse = await dynamo.get(statusCheckParams)
         
-        if (statusCheckResponse.status == null) {
+        if (!statusCheckResponse.Item.status) {
             return reply.code(400).send({
                 reason: 'Machine Status field does not exist'
             })
@@ -55,7 +55,15 @@ module.exports = async function (fastify, opts) {
         // SET MACHINE STATUS IN DB
         await setMachineStatusFromDB(machineId, newStatus, this.dynamo)
         statusCheckResponse = await dynamo.get(statusCheckParams)
-        console.log(statusCheckResponse.status)
-        return reply.code(200).send(statusCheckResponse.status);
+        if (statusCheckResponse.Item.status == newStatus) {
+            console.log(statusCheckResponse.status)
+            return reply.code(200).send(statusCheckResponse.status)
+        } else {
+            return reply.code(400).send({
+                reason: 'Status returned does not match expected',
+                statusSent: newStatus,
+                statusReturned: statusCheckResponse.Item.status
+            })
+        }
     })
 }

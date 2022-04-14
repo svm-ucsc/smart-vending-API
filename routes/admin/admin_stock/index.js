@@ -11,17 +11,13 @@ const schema = {
         required: ['machine_id', 'item_stock'],
         properties: {
             machine_id: { type: 'string' },
-            item_stock: { type: 'number' }
+            item_stock: { type: 'object' }
         }
     },
     response: {
         200: {
             description: 'Updating the item stock of a machine, succeeded.',
-            type: 'object',
-            properties: {
-                item_socket: { type: number }
-            }
-
+            type: 'object'
         },
         400: {
             description: 'Updating the item of a machine, failed.',
@@ -46,7 +42,7 @@ module.exports = async function (fastify, opts) {
 
         const stockCheckResponse = await dynamo.get(stockCheckParams)
         
-        if (stockCheckResponse.status == null) {
+        if (!stockCheckResponse.Item.status) {
             return reply.code(400).send({
                 reason: 'Item stock field does not exist'
             })
