@@ -93,11 +93,12 @@ module.exports = {
     const weight = itemCheckResponse.Item.weight
     const volume = itemCheckResponse.Item.volume
 
-    return {itemWeight: weight, itemVolume: volume}
+    const itemInfo = { 'itemWeight': weight, 'itemVolume': volume}
+    return itemInfo
   },
 
   async createMachineOrder (machineOrder, itemID, itemQuantity, itemInfo, itemLocation) {
-    machineOrder[itemID] = {quantity: itemQuantity, weight: itemInfo.itemWeight, volume: itemInfo.itemVolume, row: itemLocation.row, column: itemLocation.column}
+    machineOrder[itemID] = {quantity: itemQuantity, weight: itemInfo['itemWeight'], volume: itemInfo['itemVolume'], row: itemLocation.row, column: itemLocation.column}
     return machineOrder
   }
 

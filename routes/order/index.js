@@ -70,7 +70,6 @@ module.exports = async function (fastify, opts) {
 
     let stock = inventoryCheckResponse.Item.stock
     let itemLocation = inventoryCheckResponse.Item.item_location
-    let itemInfo = {}
     let machineOrder = {}
 
     for (const item in orderedItems) {
@@ -105,15 +104,10 @@ module.exports = async function (fastify, opts) {
 
     // Create a machine order dictionary
     for (const item in orderedItems) {
-      itemInfo = getItemInfo(item, this.dynamo)
-      if (!itemInfo) {
-        return reply.code(400).send({
-          reason: 'item_id could not be found',
-          missingID: item
-        })
-      } else {
+      console.log("Grabbing itemInfo for", item)
+      getItemInfo(item, this.dynamo).then(itemInfo => {
         machineOrder = createMachineOrder(machineOrder, item, orderedItems[item], itemInfo, itemLocation[item])
-      }
+      })
     }
 
     // 1. REMOVE STOCK FROM MACHINE IN DB
@@ -127,8 +121,8 @@ module.exports = async function (fastify, opts) {
     this.customMqttClient.submitOrder(orderId, machineId, machineOrder)
 
     // 4. CREATE ORDER TIMEOUT TASK
-    const timoutMS = 5000
-    setTimeout(orderTimeout, timoutMS, this.dynamo, orderId)
+    const timeoutMS = 5000
+    setTimeout(orderTimeout, timeoutMS, this.dynamo, orderId)
 
     // 5. RETURN ORDER ID
     return reply.code(200).send(orderId)
