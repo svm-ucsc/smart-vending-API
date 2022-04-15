@@ -109,9 +109,7 @@ module.exports = async function (fastify, opts) {
         machineOrder = createMachineOrder(machineOrder, item, orderedItems[item], itemInfo, itemLocation[item])
       })
     }
-
-    console.log("This is machine order after promise resolution:", machineOrder)
-
+    
     // 1. REMOVE STOCK FROM MACHINE IN DB
     await removeStockFromDB(machineId, stock, this.dynamo)
 
