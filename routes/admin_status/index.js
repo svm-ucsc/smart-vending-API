@@ -1,5 +1,5 @@
 'use strict'
-const { setMachineStatusFromDB } = require('../util')
+const { setMachineStatusFromDB } = require('./util')
 
 const schema = {
   description: 'DynamoDB admin functions. Change status of a machine',

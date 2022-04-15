@@ -1,5 +1,5 @@
 'use strict'
-const { setItemStockFromDB } = require('../util')
+const { setItemStockFromDB } = require('./util')
 
 const schema = {
   description: 'DynamoDB admin functions. Change stock of item in a machine',
