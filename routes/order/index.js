@@ -104,12 +104,11 @@ module.exports = async function (fastify, opts) {
 
     // Create a machine order dictionary
     for (const item in orderedItems) {
-      console.log("Grabbing itemInfo for", item)
       getItemInfo(item, this.dynamo).then(itemInfo => {
         machineOrder = createMachineOrder(machineOrder, item, orderedItems[item], itemInfo, itemLocation[item])
       })
     }
-    
+
     // 1. REMOVE STOCK FROM MACHINE IN DB
     await removeStockFromDB(machineId, stock, this.dynamo)
 

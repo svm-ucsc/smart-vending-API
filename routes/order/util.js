@@ -93,7 +93,7 @@ module.exports = {
     const weight = itemCheckResponse.Item.weight
     const volume = itemCheckResponse.Item.volume
 
-    const itemInfo = { 'itemWeight': weight, 'itemVolume': volume}
+    const itemInfo = { 'itemWeight': weight, 'itemVolume': volume }
     return itemInfo
   },
 
