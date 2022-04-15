@@ -97,7 +97,7 @@ module.exports = {
     return itemInfo
   },
 
-  async createMachineOrder (machineOrder, itemID, itemQuantity, itemInfo, itemLocation) {
+  createMachineOrder (machineOrder, itemID, itemQuantity, itemInfo, itemLocation) {
     machineOrder[itemID] = {quantity: itemQuantity, weight: itemInfo['itemWeight'], volume: itemInfo['itemVolume'], row: itemLocation.row, column: itemLocation.column}
     return machineOrder
   }
