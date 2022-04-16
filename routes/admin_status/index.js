@@ -44,7 +44,11 @@ module.exports = async function (fastify, opts) {
 
     let statusCheckResponse = await this.dynamo.get(statusCheckParams)
 
-    if (!statusCheckResponse.Item.status) {
+    if (!statusCheckResponse.Item) {
+      return reply.code(400).send({
+        reason: 'Invalid Machine ID'
+      })
+    } else if (!statusCheckResponse.Item.status) {
       return reply.code(400).send({
         reason: 'Machine Status field does not exist'
       })
