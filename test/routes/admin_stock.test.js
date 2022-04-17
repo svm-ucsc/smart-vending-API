@@ -25,8 +25,8 @@ test('Set stock 0', async (t) => {
     method: 'GET',
     url: '/machine',
     query: {
-      mids: ['testclient'],
-      fields: ['stock']
+      mids: 'testclient',
+      fields: 'stock'
     }
   })
   t.equal(stockCheck.statusCode, 200)
