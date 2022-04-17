@@ -8,11 +8,11 @@ const schema = {
     type: 'object',
     properties: {
       mids: {
-        type: ['string', 'array'],
+        type: 'string', // Changed type to string bc split works only on strings, seems more like a csv rather than an actual array of strings
         description: 'Machine IDs. Leave blank to get all machines.'
       },
       fields: {
-        type: ['string', 'array'],
+        type: 'string', // Same as here, will remove comments this is just to explain reasoning for change for you in pr
         description: 'Desired return fields. Leave blank to get all fields.'
       }
     }
