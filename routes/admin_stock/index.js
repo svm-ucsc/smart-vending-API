@@ -11,7 +11,7 @@ const schema = {
     properties: {
       machine_id: { type: 'string' },
       item_id: { type: 'string' },
-      item_stock: { type: 'object' }
+      item_stock: { type: 'number' }
     }
   },
   response: {
@@ -57,10 +57,8 @@ module.exports = async function (fastify, opts) {
     await setItemStockFromDB(machineId, itemId, itemStock, this.dynamo)
     stockCheckResponse = await this.dynamo.get(stockCheckParams)
     if (stockCheckResponse.Item.stock[itemId] === itemStock) {
-      console.log('Stock matches expected value:', stockCheckResponse.Item.stock[itemId])
       return reply.code(200).send(stockCheckResponse.Item.stock[itemId])
     } else {
-      console.log('Stock does not match expected value')
       return reply.code(400).send({
         reason: 'Stock does not match expected value'
       })

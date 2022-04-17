@@ -58,7 +58,6 @@ module.exports = async function (fastify, opts) {
     await setMachineStatusFromDB(machineId, newStatus, this.dynamo)
     statusCheckResponse = await this.dynamo.get(statusCheckParams)
     if (statusCheckResponse.Item.status === newStatus) {
-      console.log('Machine status matches expected', statusCheckResponse.Item.status)
       return reply.code(200).send(statusCheckResponse.status)
     } else {
       return reply.code(400).send({
