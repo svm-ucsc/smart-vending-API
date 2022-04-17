@@ -1,5 +1,5 @@
 'use strict'
-const { removeStockFromDB, createNewOrder, orderTimeout, getItemInfo, createMachineOrder } = require('./util')
+const { removeStockFromDB, createNewOrder, orderTimeout, getItemInfo, createOrderList } = require('./util')
 const { v4 } = require('uuid')
 
 const schema = {
@@ -70,7 +70,7 @@ module.exports = async function (fastify, opts) {
 
     let stock = inventoryCheckResponse.Item.stock
     let itemLocation = inventoryCheckResponse.Item.item_location
-    let machineOrder = {}
+    let orderList = {}
 
     for (const item in orderedItems) {
       if (item in stock) {
@@ -105,7 +105,7 @@ module.exports = async function (fastify, opts) {
     // Create a machine order dictionary
     for (const item in orderedItems) {
       getItemInfo(item, this.dynamo).then(itemInfo => {
-        machineOrder = createMachineOrder(machineOrder, item, orderedItems[item], itemInfo, itemLocation[item])
+        orderList = createOrderList(orderList, item, orderedItems[item], itemInfo, itemLocation[item])
       })
     }
 
@@ -117,7 +117,7 @@ module.exports = async function (fastify, opts) {
     await createNewOrder(orderId, machineId, orderedItems, this.dynamo)
 
     // 3. SEND ORDER TO BROKER
-    this.customMqttClient.submitOrder(orderId, machineId, machineOrder)
+    this.customMqttClient.submitOrder(orderId, machineId, orderList)
 
     // 4. CREATE ORDER TIMEOUT TASK
     const timeoutMS = 5000

@@ -97,9 +97,9 @@ module.exports = {
     return itemInfo
   },
 
-  createMachineOrder (machineOrder, itemID, itemQuantity, itemInfo, itemLocation) {
-    machineOrder[itemID] = {quantity: itemQuantity, weight: itemInfo['itemWeight'], volume: itemInfo['itemVolume'], row: itemLocation.row, column: itemLocation.column}
-    return machineOrder
+  createOrderList (orderList, itemID, itemQuantity, itemInfo, itemLocation) {
+    orderList[itemID] = {quantity: itemQuantity, weight: itemInfo['itemWeight'], volume: itemInfo['itemVolume'], row: itemLocation.row, column: itemLocation.column}
+    return orderList
   }
 
 }
