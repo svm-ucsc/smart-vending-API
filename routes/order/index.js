@@ -104,15 +104,14 @@ module.exports = async function (fastify, opts) {
 
     // Create a machine order dictionary
     for (const item in orderedItems) {
-      getItemInfo(item, this.dynamo).then(itemInfo => {
-        orderList = createOrderList(orderList, item, orderedItems[item], itemInfo, itemLocation[item])
-        if (!orderList) {
-          return reply.code(400).send({
-            reason: 'Info for requested item does not exist in db',
-            missing_item: item
-          })
-        }
-      })
+      const itemInfoCall = await getItemInfo(item, this.dynamo)
+      orderList = createOrderList(orderList, item, orderedItems[item], itemInfoCall, itemLocation[item])
+      if (!orderList) {
+        return reply.code(400).send({
+          reason: 'Info for requested item does not exist in db or is invalid',
+          missing_item: item
+        })
+      }
     }
 
     // 1. REMOVE STOCK FROM MACHINE IN DB
