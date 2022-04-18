@@ -60,5 +60,6 @@ test('item does not exist order', async (t) => {
       'items': { 'd016': 1, 't002': 1, 'THE NULL ITEM OF BUG CREATION': 1 }
     }
   })
+  console.log(res.body)
   t.equal(res.statusCode, 400)
 })
