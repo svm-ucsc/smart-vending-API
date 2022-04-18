@@ -106,6 +106,12 @@ module.exports = async function (fastify, opts) {
     for (const item in orderedItems) {
       getItemInfo(item, this.dynamo).then(itemInfo => {
         orderList = createOrderList(orderList, item, orderedItems[item], itemInfo, itemLocation[item])
+        if (orderList = null) {
+          return reply.code(400).send({
+            reason: 'Info for requested item does not exist in db',
+            missing_item: item
+          })
+        }
       })
     }
 

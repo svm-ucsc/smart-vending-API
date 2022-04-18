@@ -98,6 +98,9 @@ module.exports = {
   },
 
   createOrderList (orderList, itemID, itemQuantity, itemInfo, itemLocation) {
+    if (!itemInfo && !itemInfo['itemWeight'] && !itemInfo['itemVolume']) {
+      return null
+    }
     orderList[itemID] = {quantity: itemQuantity, weight: itemInfo['itemWeight'], volume: itemInfo['itemVolume'], row: itemLocation.row, column: itemLocation.column}
     return orderList
   }
