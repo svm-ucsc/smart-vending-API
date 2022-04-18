@@ -73,6 +73,36 @@ module.exports = {
       }
       await dynamo.update(updateMachineParams)
     }
+  },
+
+  async getItemInfo (itemId, dynamo) {
+    const itemCheckParams = {
+      TableName: 'items',
+      Key: {
+        item_id: itemId
+      },
+      AttributesToGet: ['volume', 'weight']
+    }
+
+    const itemCheckResponse = await dynamo.get(itemCheckParams)
+
+    if (!itemCheckResponse.Item) {
+      return null
+    }
+
+    const weight = itemCheckResponse.Item.weight
+    const volume = itemCheckResponse.Item.volume
+
+    const itemInfo = { 'itemWeight': weight, 'itemVolume': volume }
+    return itemInfo
+  },
+
+  createOrderList (orderList, itemID, itemQuantity, itemInfo, itemLocation) {
+    if (!itemInfo || !itemInfo['itemWeight'] || !itemInfo['itemVolume']) {
+      return null
+    }
+    orderList[itemID] = {quantity: itemQuantity, weight: itemInfo['itemWeight'], volume: itemInfo['itemVolume'], row: itemLocation.row, column: itemLocation.column}
+    return orderList
   }
 
 }

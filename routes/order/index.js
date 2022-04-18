@@ -1,5 +1,5 @@
 'use strict'
-const { removeStockFromDB, createNewOrder, orderTimeout } = require('./util')
+const { removeStockFromDB, createNewOrder, orderTimeout, getItemInfo, createOrderList } = require('./util')
 const { v4 } = require('uuid')
 
 const schema = {
@@ -47,7 +47,7 @@ module.exports = async function (fastify, opts) {
       Key: {
         machine_id: machineId
       },
-      AttributesToGet: ['status', 'stock']
+      AttributesToGet: ['status', 'stock', 'item_location']
     }
 
     const inventoryCheckResponse = await this.dynamo.get(inventoryCheckParams)
@@ -66,8 +66,11 @@ module.exports = async function (fastify, opts) {
       })
     }
 
-    let stock = inventoryCheckResponse.Item.stock
     let missingItems = {}
+
+    let stock = inventoryCheckResponse.Item.stock
+    let itemLocation = inventoryCheckResponse.Item.item_location
+    let orderList = {}
 
     for (const item in orderedItems) {
       if (item in stock) {
@@ -99,6 +102,18 @@ module.exports = async function (fastify, opts) {
 
     // Validation complete
 
+    // Create a machine order dictionary
+    for (const item in orderedItems) {
+      const itemInfoCall = await getItemInfo(item, this.dynamo)
+      orderList = createOrderList(orderList, item, orderedItems[item], itemInfoCall, itemLocation[item])
+      if (!orderList) {
+        return reply.code(400).send({
+          reason: 'Info for requested item does not exist in db or is invalid',
+          missing_item: item
+        })
+      }
+    }
+
     // 1. REMOVE STOCK FROM MACHINE IN DB
     await removeStockFromDB(machineId, stock, this.dynamo)
 
@@ -107,11 +122,11 @@ module.exports = async function (fastify, opts) {
     await createNewOrder(orderId, machineId, orderedItems, this.dynamo)
 
     // 3. SEND ORDER TO BROKER
-    this.customMqttClient.submitOrder(orderId, machineId, orderedItems)
+    this.customMqttClient.submitOrder(orderId, machineId, orderList)
 
     // 4. CREATE ORDER TIMEOUT TASK
-    const timoutMS = 5000
-    setTimeout(orderTimeout, timoutMS, this.dynamo, orderId)
+    const timeoutMS = 5000
+    setTimeout(orderTimeout, timeoutMS, this.dynamo, orderId)
 
     // 5. RETURN ORDER ID
     return reply.code(200).send(orderId)
