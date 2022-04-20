@@ -1,24 +1,20 @@
 'use strict'
 
 module.exports =  {
-    async isMachine (lat, long, dynamo) {
-        const checkLocationParams = {
+    async getMachines (itemId, dynamo) {
+        const stockCheckParams = {
             TableName: 'inventory',
-            ExpressionAttributeNames: {
-                '#mid': 'machine_id'
-            },
-            ExpressionAttributeValues: {
-                ':lat': lat,
-                ':long': long
-            },
-            FilterExpression: 'location.latitude = :lat, location.longitude = :long',
-            ProjectionExpression: '#mid'
+            AttributesToGet: ['stock', 'location']
         }
-        const response = await dynamo.scan(checkLocationParams)
-        if (!response.Item) {
-            return null
-        } else {
-            return response.Item.machine_id
+        const stockCheckResponse = await dynamo.scan(stockCheckParams)
+
+        console.log(stockCheckResponse)
+
+        if (!stockCheckResponse.Items) {
+            return reply.code(400).send({
+                reason: 'No items with stock attribute were found'
+            })
         }
+        return stockCheckResponse.Items
     }
 }

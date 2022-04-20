@@ -1,4 +1,5 @@
 'use strict'
+const { getMachines } = require('./util')
 
 const schema = {
     description: 'Return a list of nearby vending machines and their locations',
@@ -6,10 +7,11 @@ const schema = {
     summary: 'Get location of nearby machines',
     body: {
         type: 'object',
-        required: ['latitude, longitude'],
+        required: ['item_id', 'latitude', 'longitude'],
         properties: {
-            latitude: {type: 'number'},
-            longitude: {type: 'number'}
+            item_id: { type: 'string' },
+            latitude: { type: 'number' },
+            longitude: { type: 'number' }
         }
     },
     response: {
@@ -30,7 +32,16 @@ const schema = {
 
 module.exports = async function (fastify, opts) {
     fastify.post('/', { schema }, async function (request, reply) {
+        const itemId = request.body['item_id']
         const lat = request.body['latitude']
         const long = request.body['longitude']
+        console.log('ITEM ID', itemId)
+        console.log('LATITUDE',lat)
+        console.log('LONGITUDE', long)
+
+        const scanResponse = await getMachines(itemId, this.dynamo)
+        console.log(scanResponse)
+        console.log(scanResponse.ScannedCount)
+        return reply.code(200).send(scanResponse)
     })
 }
