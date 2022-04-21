@@ -11,7 +11,8 @@ const schema = {
         properties: {
             item_id: { type: 'string' },
             latitude: { type: 'number' },
-            longitude: { type: 'number' }
+            longitude: { type: 'number' },
+            range: { type: 'number' }
         }
     },
     response: {
@@ -35,12 +36,24 @@ module.exports = async function (fastify, opts) {
         const itemId = request.body['item_id']
         const lat = request.body['latitude']
         const long = request.body['longitude']
+        const range = request.body['range']
+        const queryLocation = {latitude: lat, longitude: long}
+        console.log('QUERY LOCATION', queryLocation)
         console.log('ITEM ID', itemId)
-        console.log('LATITUDE',lat)
-        console.log('LONGITUDE', long)
+        console.log('LATITUDE',queryLocation.latitude)
+        console.log('LONGITUDE', queryLocation.longitude)
+
+        const nearMachines = []
 
         const scanResponse = await getMachines(itemId, this.dynamo)
-        console.log(scanResponse.Items)
+        // console.log('Scan Reponse Items', scanResponse.Items)
+        for (const index in scanResponse.Items) {
+            if (!scanResponse.Items[index].stock[itemId]) {
+                console.log('item out of stock')
+            }
+            console.log(scanResponse.Items[index].location)
+            console.log(scanResponse.Items[index].stock[itemId])
+        }
         console.log(scanResponse.ScannedCount)
         return reply.code(200).send(scanResponse.ScannedCount)
     })
