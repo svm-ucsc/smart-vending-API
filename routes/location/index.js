@@ -56,6 +56,7 @@ module.exports = async function (fastify, opts) {
             console.log('Machine Location', scanResponse.Items[index].location)
             console.log(scanResponse.Items[index].stock[itemId])
         }
+        console.log('Nearest', nearMachines)
         console.log(scanResponse.ScannedCount)
         return reply.code(200).send(scanResponse.ScannedCount)
     })
