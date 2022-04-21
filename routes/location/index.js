@@ -1,5 +1,5 @@
 'use strict'
-const { getMachines } = require('./util')
+const { getMachines, getNearest } = require('./util')
 
 const schema = {
     description: 'Return a list of nearby vending machines and their locations',
@@ -50,8 +50,10 @@ module.exports = async function (fastify, opts) {
         for (const index in scanResponse.Items) {
             if (!scanResponse.Items[index].stock[itemId]) {
                 console.log('item out of stock')
+            } else {
+                getNearest(nearMachines, scanResponse.Items[index].location, queryLocation, range);
             }
-            console.log(scanResponse.Items[index].location)
+            console.log('Machine Location', scanResponse.Items[index].location)
             console.log(scanResponse.Items[index].stock[itemId])
         }
         console.log(scanResponse.ScannedCount)
