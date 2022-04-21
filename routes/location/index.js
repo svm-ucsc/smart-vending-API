@@ -40,8 +40,8 @@ module.exports = async function (fastify, opts) {
         console.log('LONGITUDE', long)
 
         const scanResponse = await getMachines(itemId, this.dynamo)
-        console.log(scanResponse)
+        console.log(scanResponse.Items)
         console.log(scanResponse.ScannedCount)
-        return reply.code(200).send(scanResponse)
+        return reply.code(200).send(scanResponse.ScannedCount)
     })
 }
