@@ -18,9 +18,13 @@ const schema = {
     response: {
         200: {
             description: 'Returned the list of machines & locations sucessfully, number of machines in range are returned',
-            type: 'object',
-            properties: {
-                in_range: { type: 'object' }
+            type: 'array',
+            location: {
+                type: 'object',
+                properties: {
+                    latitude: { type: 'string' },
+                    longitude: { type: 'string' }
+                }
             }
         },
         400: {
