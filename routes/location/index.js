@@ -20,7 +20,7 @@ const schema = {
             description: 'Returned the list of machines & locations sucessfully, number of machines in range are returned',
             type: 'object',
             properties: {
-                in_range: { type: 'integer' }
+                in_range: { type: 'object' }
             }
         },
         400: {
@@ -38,26 +38,17 @@ module.exports = async function (fastify, opts) {
         const long = request.body['longitude']
         const range = request.body['range']
         const queryLocation = {latitude: lat, longitude: long}
-        console.log('QUERY LOCATION', queryLocation)
-        console.log('ITEM ID', itemId)
-        console.log('LATITUDE',queryLocation.latitude)
-        console.log('LONGITUDE', queryLocation.longitude)
 
         const nearMachines = []
 
         const scanResponse = await getMachines(itemId, this.dynamo)
-        // console.log('Scan Reponse Items', scanResponse.Items)
         for (const index in scanResponse.Items) {
             if (!scanResponse.Items[index].stock[itemId]) {
                 console.log('item out of stock')
             } else {
                 getNearest(nearMachines, scanResponse.Items[index].location, queryLocation, range);
             }
-            console.log('Machine Location', scanResponse.Items[index].location)
-            console.log(scanResponse.Items[index].stock[itemId])
         }
-        console.log('Nearest', nearMachines)
-        console.log(scanResponse.ScannedCount)
-        return reply.code(200).send(scanResponse.ScannedCount)
+        return reply.code(200).send(nearMachines)
     })
 }
