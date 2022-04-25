@@ -2,7 +2,7 @@
 const { getMachines, getNearest } = require('./util')
 
 const schema = {
-    description: 'Return a list of nearby vending machines and their locations',
+    description: 'Return a list of nearby vending machines and their locations. Range is in meters.',
     tags: ['routes'],
     summary: 'Get location of nearby machines',
     body: {
