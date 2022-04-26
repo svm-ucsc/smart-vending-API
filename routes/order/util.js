@@ -1,6 +1,58 @@
 'use strict'
 
 module.exports = {
+  async createPaypalOrder (cost) {
+    const accessToken = await generateAccessToken()
+    const url = 'https://api-m.sandbox.paypal.com/v2/checkout/orders'
+    const response = await fetch(url, {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        intent: "CAPTURE",
+        purchase_units: [
+          {
+            amount: {
+              currency_code: "USD",
+              value: `${cost/100}`,
+            },
+          },
+        ],
+      }),
+    });
+    const data = await response.json()
+    return data
+  },
+
+  async capturePayment(orderId) {
+    const accessToken = await generateAccessToken();
+    const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`;
+    const response = await fetch(url, {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const data = await response.json();
+    return data;
+  },
+
+  async generateAccessToken() {
+    const auth = 'AUa5_Jl61gBVAKStkIh3OroJlrRZUWqcfjmvjgKuUsCi7UsmZRZcPFT2uJKydC2n9Umqd_Xxyz3PB3WX:PAYPAL_APP_SECRET'
+    const response = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
+      method: "post",
+      body: "grant_type=client_credentials",
+      headers: {
+        Authorization: `Basic ${auth}`,
+      },
+    })
+    const data = await response.json()
+    return data.access_token
+  },
+
   async removeStockFromDB (machineId, stock, dynamo) {
     const updateStockParams = {
       TableName: 'inventory',
@@ -75,13 +127,17 @@ module.exports = {
     }
   },
 
+  async paymentTimout (dynamo, orderId) {
+
+  },
+
   async getItemInfo (itemId, dynamo) {
     const itemCheckParams = {
       TableName: 'items',
       Key: {
         item_id: itemId
       },
-      AttributesToGet: ['volume', 'weight']
+      AttributesToGet: ['volume', 'weight', 'cost']
     }
 
     const itemCheckResponse = await dynamo.get(itemCheckParams)
@@ -92,8 +148,9 @@ module.exports = {
 
     const weight = itemCheckResponse.Item.weight
     const volume = itemCheckResponse.Item.volume
+    const cost = itemCheckResponse.Item.cost
 
-    const itemInfo = { 'itemWeight': weight, 'itemVolume': volume }
+    const itemInfo = { 'itemWeight': weight, 'itemVolume': volume, 'itemCost': cost }
     return itemInfo
   },
 

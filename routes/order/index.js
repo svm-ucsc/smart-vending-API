@@ -1,5 +1,5 @@
 'use strict'
-const { removeStockFromDB, createNewOrder, orderTimeout, getItemInfo, createOrderList } = require('./util')
+const { removeStockFromDB, createNewOrder, paymentTimout, getItemInfo, createOrderList } = require('./util')
 const { v4 } = require('uuid')
 
 const schema = {
@@ -100,9 +100,8 @@ module.exports = async function (fastify, opts) {
       })
     }
 
-    // Validation complete
-
     // Create a machine order dictionary
+    let totalCost = 0
     for (const item in orderedItems) {
       const itemInfoCall = await getItemInfo(item, this.dynamo)
       orderList = createOrderList(orderList, item, orderedItems[item], itemInfoCall, itemLocation[item])
@@ -112,23 +111,29 @@ module.exports = async function (fastify, opts) {
           missing_item: item
         })
       }
+      totalCost += itemInfoCall['itemCost']
     }
 
-    // 1. REMOVE STOCK FROM MACHINE IN DB
+    // Validation complete
+
+    // 1. generate paypal order
+    const paypalOrderRes = await createPaypalOrder(totalCost)
+
+    // 2. REMOVE STOCK FROM MACHINE IN DB
     await removeStockFromDB(machineId, stock, this.dynamo)
 
-    // 2. CREATE NEW ORDER
+    // 3. CREATE NEW ORDER
     const orderId = v4()
     await createNewOrder(orderId, machineId, orderedItems, this.dynamo)
 
-    // 3. SEND ORDER TO BROKER
-    this.customMqttClient.submitOrder(orderId, machineId, orderList)
+    // 4. CREATE PAYMENT TIMEOUT TASK
+    const timeoutMS = 180000 // three minutes
+    setTimeout(paymentTimout, timeoutMS, this.dynamo, orderId)
 
-    // 4. CREATE ORDER TIMEOUT TASK
-    const timeoutMS = 5000
-    setTimeout(orderTimeout, timeoutMS, this.dynamo, orderId)
-
-    // 5. RETURN ORDER ID
-    return reply.code(200).send(orderId)
+    // 5. RETURN ORDER ID + approval link
+    return reply.code(200).send({
+      order_id: orderId, 
+      paypal_order_id: paypalOrderRes.id
+    })
   })
 }
