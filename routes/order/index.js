@@ -1,5 +1,5 @@
 'use strict'
-const { removeStockFromDB, createNewOrder, paymentTimout, getItemInfo, createOrderList } = require('./util')
+const { createPaypalOrder, removeStockFromDB, createNewOrder, paymentTimout, getItemInfo, createOrderList } = require('./util')
 const { v4 } = require('uuid')
 
 const schema = {
@@ -25,7 +25,8 @@ const schema = {
       description: 'Order was placed successfully. The order_id is returned in an object.',
       type: 'object',
       properties: {
-        order_id: { type: 'string' }
+        order_id: { type: 'string' },
+        paypal_order_id: { type: 'string' }
       }
     },
     400: {
@@ -117,7 +118,7 @@ module.exports = async function (fastify, opts) {
     // Validation complete
 
     // 1. generate paypal order
-    const paypalOrderRes = await createPaypalOrder(totalCost)
+    const paypalOrderRes = await createPaypalOrder(this.axios, totalCost)
 
     // 2. REMOVE STOCK FROM MACHINE IN DB
     await removeStockFromDB(machineId, stock, this.dynamo)
@@ -131,6 +132,7 @@ module.exports = async function (fastify, opts) {
     setTimeout(paymentTimout, timeoutMS, this.dynamo, orderId)
 
     // 5. RETURN ORDER ID + approval link
+    console.log(paypalOrderRes.id)
     return reply.code(200).send({
       order_id: orderId, 
       paypal_order_id: paypalOrderRes.id

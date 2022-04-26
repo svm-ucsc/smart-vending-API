@@ -1,9 +1,25 @@
 'use strict'
 
+async function generateAccessToken(axios) {
+  const base = 'https://api-m.sandbox.paypal.com'
+  const auth = Buffer.from('AUa5_Jl61gBVAKStkIh3OroJlrRZUWqcfjmvjgKuUsCi7UsmZRZcPFT2uJKydC2n9Umqd_Xxyz3PB3WX:EAtnWOPArI7e9Xf5g69obwr-RqR4iRQx0xRtrZsp7vg3wNENsg1CkPeO3g2DLq6uBu-2ikydTJVKR7Eu').toString("base64")
+  const response = await fetch(`${base}/v1/oauth2/token`, {
+    method: "post",
+    body: "grant_type=client_credentials",
+    headers: {
+      Authorization: `Basic ${auth}`,
+    },
+  });
+  const data = await response.json()
+  return data.access_token
+}
+
 module.exports = {
-  async createPaypalOrder (cost) {
-    const accessToken = await generateAccessToken()
-    const url = 'https://api-m.sandbox.paypal.com/v2/checkout/orders'
+  async createPaypalOrder(axios, cost) {
+    const base = 'https://api-m.sandbox.paypal.com'
+    const accessToken = await generateAccessToken(axios)
+    const url = `${base}/v2/checkout/orders`
+    const costUSD = cost/100
     const response = await fetch(url, {
       method: "post",
       headers: {
@@ -16,18 +32,19 @@ module.exports = {
           {
             amount: {
               currency_code: "USD",
-              value: `${cost/100}`,
+              value: `${costUSD}`,
             },
           },
         ],
       }),
     });
+    
     const data = await response.json()
     return data
   },
 
-  async capturePayment(orderId) {
-    const accessToken = await generateAccessToken();
+  async capturePayment(axios, orderId) {
+    const accessToken = await generateAccessToken(axios);
     const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`;
     const response = await fetch(url, {
       method: "post",
@@ -40,20 +57,7 @@ module.exports = {
     return data;
   },
 
-  async generateAccessToken() {
-    const auth = 'AUa5_Jl61gBVAKStkIh3OroJlrRZUWqcfjmvjgKuUsCi7UsmZRZcPFT2uJKydC2n9Umqd_Xxyz3PB3WX:PAYPAL_APP_SECRET'
-    const response = await fetch('https://api-m.sandbox.paypal.com/v1/oauth2/token', {
-      method: "post",
-      body: "grant_type=client_credentials",
-      headers: {
-        Authorization: `Basic ${auth}`,
-      },
-    })
-    const data = await response.json()
-    return data.access_token
-  },
-
-  async removeStockFromDB (machineId, stock, dynamo) {
+  async removeStockFromDB(machineId, stock, dynamo) {
     const updateStockParams = {
       TableName: 'inventory',
       Key: {
@@ -67,7 +71,7 @@ module.exports = {
     await dynamo.update(updateStockParams)
   },
 
-  async createNewOrder (orderId, machineId, orderedItems, dynamo) {
+  async createNewOrder(orderId, machineId, orderedItems, dynamo) {
     const orderIdCreateParams = {
       TableName: 'orders',
       Item: {
@@ -75,13 +79,13 @@ module.exports = {
         machine_id: machineId,
         ordered_item: orderedItems,
         time: Date.now(),
-        status: 'PENDING'
+        status: 'PAYMENT_PENDING'
       }
     }
     await dynamo.put(orderIdCreateParams)
   },
 
-  async orderTimeout (dynamo, orderId) {
+  async orderTimeout(dynamo, orderId) {
     const orderCheckParams = {
       TableName: 'orders',
       Key: {
@@ -127,11 +131,39 @@ module.exports = {
     }
   },
 
-  async paymentTimout (dynamo, orderId) {
+  async paymentTimout(dynamo, orderId) {
+    console.log('PAYMENT HAS TIMEOUT ED')
+    // mark order as FAILED_PAYMENT in DB
+    const orderCheckParams = {
+      TableName: 'orders',
+      Key: {
+        order_id: orderId
+      },
+      AttributesToGet: ['status']
+    }
+    const orderCheckResponse = await dynamo.get(orderCheckParams)
 
+    console.log(orderCheckResponse.Item)
+
+    if (orderCheckResponse.Item && orderCheckResponse.Item.status === 'PAYMENT_PENDING') {
+      const updateOrderParams = {
+        TableName: 'orders',
+        Key: {
+          order_id: orderId
+        },
+        UpdateExpression: 'set #st = :to',
+        ExpressionAttributeNames: {
+          '#st': 'status'
+        },
+        ExpressionAttributeValues: {
+          ':to': 'PAYMENT_TIMEDOUT'
+        }
+      }
+      await dynamo.update(updateOrderParams)
+    }
   },
 
-  async getItemInfo (itemId, dynamo) {
+  async getItemInfo(itemId, dynamo) {
     const itemCheckParams = {
       TableName: 'items',
       Key: {
@@ -154,11 +186,11 @@ module.exports = {
     return itemInfo
   },
 
-  createOrderList (orderList, itemID, itemQuantity, itemInfo, itemLocation) {
+  createOrderList(orderList, itemID, itemQuantity, itemInfo, itemLocation) {
     if (!itemInfo || !itemInfo['itemWeight'] || !itemInfo['itemVolume']) {
       return null
     }
-    orderList[itemID] = {quantity: itemQuantity, weight: itemInfo['itemWeight'], volume: itemInfo['itemVolume'], row: itemLocation.row, column: itemLocation.column}
+    orderList[itemID] = { quantity: itemQuantity, weight: itemInfo['itemWeight'], volume: itemInfo['itemVolume'], row: itemLocation.row, column: itemLocation.column }
     return orderList
   }
 
