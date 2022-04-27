@@ -44,13 +44,13 @@ module.exports = async function (fastify, opts) {
     const fieldsArr = request.query.fields && request.query.fields.split(',')
 
     if (request.query.iids) { // Filter by IDs
-      const iids = request.query.iids.split(',').map(id => ({'item_id': id}))
+      const iids = request.query.iids.split(',').map(id => ({ item_id: id }))
 
       const params = {
         RequestItems: {
-          'items': {
+          items: {
             Keys: iids,
-            ...(fieldsArr && {AttributesToGet: fieldsArr})
+            ...(fieldsArr && { AttributesToGet: fieldsArr })
           }
         }
       }
@@ -60,7 +60,7 @@ module.exports = async function (fastify, opts) {
     } else { // Get ALL items
       const params = {
         TableName: 'items',
-        ...(fieldsArr && {AttributesToGet: fieldsArr})
+        ...(fieldsArr && { AttributesToGet: fieldsArr })
       }
 
       const response = await this.dynamo.scan(params)

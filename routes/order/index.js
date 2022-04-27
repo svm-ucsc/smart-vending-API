@@ -10,12 +10,12 @@ const schema = {
     type: 'object',
     required: ['machine_id', 'items'],
     properties: {
-      machine_id: {type: 'string'},
+      machine_id: { type: 'string' },
       items: {
         type: 'object',
         minProperties: 1,
         patternProperties: {
-          '.+': {type: 'integer'}
+          '.+': { type: 'integer' }
         }
       }
     }
@@ -40,8 +40,8 @@ const schema = {
 
 module.exports = async function (fastify, opts) {
   fastify.post('/', { schema }, async function (request, reply) {
-    const machineId = request.body['machine_id']
-    const orderedItems = request.body['items']
+    const machineId = request.body.machine_id
+    const orderedItems = request.body.items
 
     const inventoryCheckParams = {
       TableName: 'inventory',
@@ -67,18 +67,18 @@ module.exports = async function (fastify, opts) {
       })
     }
 
-    let missingItems = {}
+    const missingItems = {}
 
-    let stock = inventoryCheckResponse.Item.stock
-    let itemLocation = inventoryCheckResponse.Item.item_location
+    const stock = inventoryCheckResponse.Item.stock
+    const itemLocation = inventoryCheckResponse.Item.item_location
     let orderList = {}
 
     for (const item in orderedItems) {
       if (item in stock) {
         if (orderedItems[item] > stock[item]) {
           missingItems[item] = {
-            'requested': orderedItems[item],
-            'available': stock[item]
+            requested: orderedItems[item],
+            available: stock[item]
           }
         } else if (orderedItems[item] < stock[item]) {
           stock[item] = stock[item] - orderedItems[item]
@@ -87,8 +87,8 @@ module.exports = async function (fastify, opts) {
         }
       } else {
         missingItems[item] = {
-          'requested': orderedItems[item],
-          'available': 0
+          requested: orderedItems[item],
+          available: 0
         }
       }
     }
@@ -112,29 +112,28 @@ module.exports = async function (fastify, opts) {
           missing_item: item
         })
       }
-      totalCost += itemInfoCall['itemCost']
+      totalCost += itemInfoCall.itemCost
     }
 
     // Validation complete
 
     // 1. generate paypal order
-    const paypalOrderRes = await createPaypalOrder(this.axios, totalCost)
+    const paypalOrderRes = await createPaypalOrder(totalCost)
 
     // 2. REMOVE STOCK FROM MACHINE IN DB
     await removeStockFromDB(machineId, stock, this.dynamo)
 
     // 3. CREATE NEW ORDER
     const orderId = v4()
-    await createNewOrder(orderId, machineId, orderedItems, this.dynamo)
+    await createNewOrder(orderId, paypalOrderRes.id, machineId, orderedItems, this.dynamo)
 
     // 4. CREATE PAYMENT TIMEOUT TASK
     const timeoutMS = 180000 // three minutes
     setTimeout(paymentTimout, timeoutMS, this.dynamo, orderId)
 
     // 5. RETURN ORDER ID + approval link
-    console.log(paypalOrderRes.id)
     return reply.code(200).send({
-      order_id: orderId, 
+      order_id: orderId,
       paypal_order_id: paypalOrderRes.id
     })
   })

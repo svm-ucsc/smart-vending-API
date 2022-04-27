@@ -8,7 +8,7 @@ function fastifyDynamoDB (fastify, options, next) {
   const region = options.region
   delete options.region
 
-  const client = new DynamoDB({region: region})
+  const client = new DynamoDB({ region })
   const ddbDocClient = DynamoDBDocument.from(client)
 
   if (!fastify.dynamo) {
@@ -23,4 +23,4 @@ module.exports = fp(fastifyDynamoDB, {
   name: 'fastify-dynamodb-v3'
 })
 
-module.exports.autoConfig = {region: 'us-east-1'}
+module.exports.autoConfig = { region: 'us-east-1' }

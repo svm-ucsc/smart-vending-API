@@ -1,36 +1,71 @@
 'use strict'
-const { capturePayment, orderTimeout } = require('../util')
-
+const { capturePayment, vendOrderTimeout } = require('../util')
 
 module.exports = async function (fastify, opts) {
   fastify.post('/', async function (request, reply) {
-    
-    const paypalOrderId = request.body['paypal_order_id']
-    const orderId = request.body['order_id']
+    const orderId = request.body.order_id
 
-    // 1. capture payment
+    // 1. verify order status is PAYMENT_PENDING
+    // 2. get paypal order id from DB (dont assume the one given to us is the right one)
 
-    capturePayment(paypalOrderId);
-
-    // 2. SEND ORDER TO BROKER
-    const getOrderParams = {
+    const orderCheckParams = {
       TableName: 'orders',
       Key: {
         order_id: orderId
       },
-      AttributesToGet: ['machine_id', 'ordered_item']
+      AttributesToGet: ['paypal_order_id', 'status', 'machine_id', 'ordered_item']
+    }
+    const orderCheckResponse = await this.dynamo.get(orderCheckParams)
+
+    if (!orderCheckResponse.Item) {
+      return reply.code(400).send({
+        reason: 'order_id could not be found'
+      })
     }
 
-    const getOrderResponse = await this.dynamo.get(getOrderParams)
+    if (orderCheckResponse.Item.status !== 'PAYMENT_TIMEDOUT') {
+      return reply.code(400).send({
+        reason: 'payment has timed out'
+      })
+    }
 
-    this.customMqttClient.submitOrder(orderId, getOrderResponse['machine_id'], getOrderResponse['orderList'])
+    if (orderCheckResponse.Item.status !== 'PAYMENT_PENDING') {
+      return reply.code(400).send({
+        reason: 'not able to process payment for order'
+      })
+    }
 
-    // 3. CREATE ORDER TIMEOUT TASK
+    const paypalOrderId = orderCheckResponse.Item.paypal_order_id
+
+    // 3. capture payment
+
+    capturePayment(paypalOrderId)
+
+    // 4. set order status as VEND_PENDING
+
+    const updateOrderParams = {
+      TableName: 'orders',
+      Key: {
+        order_id: orderId
+      },
+      UpdateExpression: 'set #st = :to',
+      ExpressionAttributeNames: {
+        '#st': 'status'
+      },
+      ExpressionAttributeValues: {
+        ':to': 'VEND_PENDING'
+      }
+    }
+    await this.dynamo.update(updateOrderParams)
+
+    // 5. SEND ORDER TO BROKER
+    this.customMqttClient.submitOrder(orderId, orderCheckResponse.Item.machine_id, orderCheckResponse.Item.orderList)
+
+    // 6. CREATE VEND_ORDER TIMEOUT TASK
     const timeoutMS = 5000 // 5 seconds
-    setTimeout(orderTimeout, timeoutMS, this.dynamo, orderId)
+    setTimeout(vendOrderTimeout, timeoutMS, this.dynamo, orderId)
 
-    // 4. RETURN ORDER ID
-    return reply.code(200).send(orderId)
-    // return reply.code(200)
+    // 7. RETURN ORDER ID
+    return reply.code(200).send()
   })
 }

@@ -48,7 +48,7 @@ module.exports = async function (fastify, opts) {
       Key: {
         order_id: request.query.oid
       },
-      ...(fieldsArr && {AttributesToGet: fieldsArr})
+      ...(fieldsArr && { AttributesToGet: fieldsArr })
     }
 
     const getOrderResponse = await this.dynamo.get(getOrderParams)

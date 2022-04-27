@@ -1,63 +1,64 @@
 'use strict'
+const fetch = require('node-fetch')
 
-async function generateAccessToken(axios) {
+async function generateAccessToken () {
   const base = 'https://api-m.sandbox.paypal.com'
-  const auth = Buffer.from('AUa5_Jl61gBVAKStkIh3OroJlrRZUWqcfjmvjgKuUsCi7UsmZRZcPFT2uJKydC2n9Umqd_Xxyz3PB3WX:EAtnWOPArI7e9Xf5g69obwr-RqR4iRQx0xRtrZsp7vg3wNENsg1CkPeO3g2DLq6uBu-2ikydTJVKR7Eu').toString("base64")
+  const auth = Buffer.from('AUa5_Jl61gBVAKStkIh3OroJlrRZUWqcfjmvjgKuUsCi7UsmZRZcPFT2uJKydC2n9Umqd_Xxyz3PB3WX:EAtnWOPArI7e9Xf5g69obwr-RqR4iRQx0xRtrZsp7vg3wNENsg1CkPeO3g2DLq6uBu-2ikydTJVKR7Eu').toString('base64')
   const response = await fetch(`${base}/v1/oauth2/token`, {
-    method: "post",
-    body: "grant_type=client_credentials",
+    method: 'post',
+    body: 'grant_type=client_credentials',
     headers: {
-      Authorization: `Basic ${auth}`,
-    },
-  });
+      Authorization: `Basic ${auth}`
+    }
+  })
   const data = await response.json()
   return data.access_token
 }
 
 module.exports = {
-  async createPaypalOrder(axios, cost) {
+  async createPaypalOrder (cost) {
     const base = 'https://api-m.sandbox.paypal.com'
-    const accessToken = await generateAccessToken(axios)
+    const accessToken = await generateAccessToken()
     const url = `${base}/v2/checkout/orders`
-    const costUSD = cost/100
+    const costUSD = cost / 100
     const response = await fetch(url, {
-      method: "post",
+      method: 'post',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
       },
       body: JSON.stringify({
-        intent: "CAPTURE",
+        intent: 'CAPTURE',
         purchase_units: [
           {
             amount: {
-              currency_code: "USD",
-              value: `${costUSD}`,
-            },
-          },
-        ],
-      }),
-    });
-    
+              currency_code: 'USD',
+              value: `${costUSD}`
+            }
+          }
+        ]
+      })
+    })
+
     const data = await response.json()
     return data
   },
 
-  async capturePayment(axios, orderId) {
-    const accessToken = await generateAccessToken(axios);
-    const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`;
+  async capturePayment (orderId) {
+    const accessToken = await generateAccessToken()
+    const url = `https://api-m.sandbox.paypal.com/v2/checkout/orders/${orderId}/capture`
     const response = await fetch(url, {
-      method: "post",
+      method: 'post',
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    const data = await response.json();
-    return data;
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
+      }
+    })
+    const data = await response.json()
+    return data
   },
 
-  async removeStockFromDB(machineId, stock, dynamo) {
+  async removeStockFromDB (machineId, stock, dynamo) {
     const updateStockParams = {
       TableName: 'inventory',
       Key: {
@@ -71,11 +72,12 @@ module.exports = {
     await dynamo.update(updateStockParams)
   },
 
-  async createNewOrder(orderId, machineId, orderedItems, dynamo) {
+  async createNewOrder (orderId, paypalOrderId, machineId, orderedItems, dynamo) {
     const orderIdCreateParams = {
       TableName: 'orders',
       Item: {
         order_id: orderId,
+        paypal_order_id: paypalOrderId,
         machine_id: machineId,
         ordered_item: orderedItems,
         time: Date.now(),
@@ -85,7 +87,7 @@ module.exports = {
     await dynamo.put(orderIdCreateParams)
   },
 
-  async orderTimeout(dynamo, orderId) {
+  async vendOrderTimeout (dynamo, orderId) {
     const orderCheckParams = {
       TableName: 'orders',
       Key: {
@@ -94,8 +96,8 @@ module.exports = {
       AttributesToGet: ['machine_id', 'status']
     }
     const orderCheckResponse = await dynamo.get(orderCheckParams)
-    console.log(orderCheckResponse.Item)
-    if (orderCheckResponse.Item && orderCheckResponse.Item.status === 'PENDING') {
+
+    if (orderCheckResponse.Item && orderCheckResponse.Item.status === 'VEND_PENDING') {
       const updateOrderParams = {
         TableName: 'orders',
         Key: {
@@ -131,19 +133,15 @@ module.exports = {
     }
   },
 
-  async paymentTimout(dynamo, orderId) {
-    console.log('PAYMENT HAS TIMEOUT ED')
-    // mark order as FAILED_PAYMENT in DB
+  async paymentTimout (dynamo, orderId) {
     const orderCheckParams = {
       TableName: 'orders',
       Key: {
         order_id: orderId
       },
-      AttributesToGet: ['status']
+      AttributesToGet: ['machine_id', 'status', 'ordered_item']
     }
     const orderCheckResponse = await dynamo.get(orderCheckParams)
-
-    console.log(orderCheckResponse.Item)
 
     if (orderCheckResponse.Item && orderCheckResponse.Item.status === 'PAYMENT_PENDING') {
       const updateOrderParams = {
@@ -161,9 +159,44 @@ module.exports = {
       }
       await dynamo.update(updateOrderParams)
     }
+
+    // add items back to machine stock
+
+    const inventoryCheckParams = {
+      TableName: 'inventory',
+      Key: {
+        machine_id: orderCheckResponse.Item.machine_id
+      },
+      AttributesToGet: ['stock']
+    }
+
+    const inventoryCheckResponse = await dynamo.get(inventoryCheckParams)
+
+    const stock = inventoryCheckResponse.Item.stock
+    const orderedItems = orderCheckParams.Item.ordered_item
+
+    for (const item in orderedItems) {
+      if (item in stock) {
+        stock[item] = stock[item] + orderedItems[item]
+      } else {
+        stock[item] = orderedItems[item]
+      }
+    }
+
+    const updateStockParams = {
+      TableName: 'inventory',
+      Key: {
+        machine_id: orderCheckResponse.Item.machine_id
+      },
+      UpdateExpression: 'set stock = :s',
+      ExpressionAttributeValues: {
+        ':s': stock
+      }
+    }
+    await dynamo.update(updateStockParams)
   },
 
-  async getItemInfo(itemId, dynamo) {
+  async getItemInfo (itemId, dynamo) {
     const itemCheckParams = {
       TableName: 'items',
       Key: {
@@ -182,15 +215,15 @@ module.exports = {
     const volume = itemCheckResponse.Item.volume
     const cost = itemCheckResponse.Item.cost
 
-    const itemInfo = { 'itemWeight': weight, 'itemVolume': volume, 'itemCost': cost }
+    const itemInfo = { itemWeight: weight, itemVolume: volume, itemCost: cost }
     return itemInfo
   },
 
-  createOrderList(orderList, itemID, itemQuantity, itemInfo, itemLocation) {
-    if (!itemInfo || !itemInfo['itemWeight'] || !itemInfo['itemVolume']) {
+  createOrderList (orderList, itemID, itemQuantity, itemInfo, itemLocation) {
+    if (!itemInfo || !itemInfo.itemWeight || !itemInfo.itemVolume) {
       return null
     }
-    orderList[itemID] = { quantity: itemQuantity, weight: itemInfo['itemWeight'], volume: itemInfo['itemVolume'], row: itemLocation.row, column: itemLocation.column }
+    orderList[itemID] = { quantity: itemQuantity, weight: itemInfo.itemWeight, volume: itemInfo.itemVolume, row: itemLocation.row, column: itemLocation.column }
     return orderList
   }
 

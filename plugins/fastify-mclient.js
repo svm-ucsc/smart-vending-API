@@ -17,7 +17,7 @@ class CustomMqttClient {
 
   async submitOrder (orderID, machineID, orderList) {
     const topic = machineID + '/order/vend'
-    const order = JSON.stringify({ 'orderID': orderID, 'orderList': orderList })
+    const order = JSON.stringify({ orderID, orderList })
     this.mqttClient.publish(topic, order)
   }
 
@@ -44,7 +44,7 @@ function fastifyCustomMQTTClient (fastify, options, next) {
           '#st': 'status'
         },
         ExpressionAttributeValues: {
-          ':er': JSON.parse(message)['status']
+          ':er': JSON.parse(message).status
         }
       }
 
@@ -54,14 +54,14 @@ function fastifyCustomMQTTClient (fastify, options, next) {
       const updateOrderParams = {
         TableName: 'orders',
         Key: {
-          order_id: JSON.parse(message)['order_id']
+          order_id: JSON.parse(message).order_id
         },
         UpdateExpression: 'set #st = :to',
         ExpressionAttributeNames: {
           '#st': 'status'
         },
         ExpressionAttributeValues: {
-          ':to': JSON.parse(message)['status']
+          ':to': JSON.parse(message).status
         }
       }
 
@@ -69,7 +69,7 @@ function fastifyCustomMQTTClient (fastify, options, next) {
     }
   }
 
-  let customClient = new CustomMqttClient(fastify.mqtt)
+  const customClient = new CustomMqttClient(fastify.mqtt)
 
   customClient.subscribe('+/status')
   customClient.subscribe('+/order/status')

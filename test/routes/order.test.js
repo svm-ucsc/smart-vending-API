@@ -13,12 +13,13 @@ test('valid order', async (t) => {
     method: 'POST',
     url: '/order',
     body: {
-      'machine_id': 'testclient',
-      'items': { 'd016': 1, 't002': 1 }
+      machine_id: 'testclient',
+      items: { d016: 1, t002: 1 }
     }
   })
   console.log(res.body)
   t.equal(res.statusCode, 200)
+  console.log("CLOSE 1")
 })
 
 test('invalid machine_id', async (t) => {
@@ -28,11 +29,12 @@ test('invalid machine_id', async (t) => {
     method: 'POST',
     url: '/order',
     body: {
-      'machine_id': 'INVALID_MACHINE_ID',
-      'items': { 'd016': 1, 't002': 1 }
+      machine_id: 'INVALID_MACHINE_ID',
+      items: { d016: 1, t002: 1 }
     }
   })
   t.equal(res.statusCode, 400)
+  console.log("CLOSE 2")
 })
 
 test('invalid order', async (t) => {
@@ -42,11 +44,12 @@ test('invalid order', async (t) => {
     method: 'POST',
     url: '/order',
     body: {
-      'machine_id': 'testclient',
-      'items': { 'ITEM_NOT_IN_STOCK': 1 }
+      machine_id: 'testclient',
+      items: { ITEM_NOT_IN_STOCK: 1 }
     }
   })
   t.equal(res.statusCode, 400)
+  console.log("CLOSE 3")
 })
 
 test('item does not exist order', async (t) => {
@@ -56,10 +59,11 @@ test('item does not exist order', async (t) => {
     method: 'POST',
     url: '/order',
     body: {
-      'machine_id': 'testclient',
-      'items': { 'd016': 1, 't002': 1, 'THE NULL ITEM OF BUG CREATION': 1 }
+      machine_id: 'testclient',
+      items: { d016: 1, t002: 1, 'THE NULL ITEM OF BUG CREATION': 1 }
     }
   })
   console.log(res.body)
   t.equal(res.statusCode, 400)
+  console.log("CLOSE 4")
 })
