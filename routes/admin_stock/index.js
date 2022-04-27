@@ -29,9 +29,9 @@ const schema = {
 
 module.exports = async function (fastify, opts) {
   fastify.post('/', schema, async function (request, reply) {
-    const machineId = request.body['machine_id']
-    const itemId = request.body['item_id']
-    const itemStock = request.body['item_stock']
+    const machineId = request.body.machine_id
+    const itemId = request.body.item_id
+    const itemStock = request.body.item_stock
 
     const stockCheckParams = {
       TableName: 'inventory',

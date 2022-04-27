@@ -25,12 +25,13 @@
         "fastify-mqtt": "^1.0.0",
         "fastify-plugin": "^3.0.0",
         "fastify-sensible": "^3.1.2",
-        "fastify-swagger": "^4.17.0"
+        "fastify-swagger": "^4.17.0",
+        "node-fetch": "^2.6.7"
     },
     "devDependencies": {
         "pino-pretty": "^7.5.1",
-        "standard": "^11.0.1",
-        "tap": "^15.1.6"
+        "standard": "^17.0.0",
+        "tap": "^16.1.0"
     },
     "tap": {
         "check-coverage": false

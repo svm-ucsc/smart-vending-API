@@ -9,8 +9,8 @@ const schema = {
     type: 'object',
     required: ['machine_id', 'status'],
     properties: {
-      machine_id: {type: 'string'},
-      status: {type: 'string'}
+      machine_id: { type: 'string' },
+      status: { type: 'string' }
     }
   },
   response: {
@@ -30,9 +30,9 @@ const schema = {
 }
 
 module.exports = async function (fastify, opts) {
-  fastify.post('/', {schema}, async function (request, reply) {
-    const machineId = request.body['machine_id']
-    const newStatus = request.body['status']
+  fastify.post('/', { schema }, async function (request, reply) {
+    const machineId = request.body.machine_id
+    const newStatus = request.body.status
 
     const statusCheckParams = {
       TableName: 'inventory',

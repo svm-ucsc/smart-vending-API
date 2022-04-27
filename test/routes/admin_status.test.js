@@ -13,8 +13,8 @@ test('Set LWT', async (t) => {
     method: 'POST',
     url: '/admin_status',
     body: {
-      'machine_id': 'testclient',
-      'status': 'LWT'
+      machine_id: 'testclient',
+      status: 'LWT'
     }
   })
   console.log(res.body)
@@ -28,8 +28,8 @@ test('invalid machine_id', async (t) => {
     method: 'POST',
     url: '/admin_status',
     body: {
-      'machine_id': 'INVALID_MACHINE_ID',
-      'status': 'READY'
+      machine_id: 'INVALID_MACHINE_ID',
+      status: 'READY'
     }
   })
   t.equal(res.statusCode, 400)
@@ -42,8 +42,8 @@ test('Set READY status', async (t) => {
     method: 'POST',
     url: '/admin_status',
     body: {
-      'machine_id': 'testclient',
-      'status': 'READY'
+      machine_id: 'testclient',
+      status: 'READY'
     }
   })
   t.equal(res.statusCode, 200)
