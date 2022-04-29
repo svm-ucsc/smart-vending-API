@@ -86,6 +86,6 @@ module.exports = async function (fastify, opts) {
     setTimeout(vendOrderTimeout, timeoutMS, this.dynamo, orderId)
 
     // 7. RETURN ORDER ID
-    return reply.code(200).send(paypalOrderId)
+    return reply.code(200).send()
   })
 }
