@@ -7,11 +7,10 @@ const schema = {
   summary: 'DynamoDB admin functions',
   body: {
     type: 'object',
-    required: ['machine_id', 'item_id', 'item_stock'],
+    required: ['machine_id', 'item_stock'],
     properties: {
       machine_id: { type: 'string' },
-      item_id: { type: 'string' },
-      item_stock: { type: 'number' }
+      item_stock: { type: 'object' }
     }
   },
   response: {
@@ -28,9 +27,8 @@ const schema = {
 }
 
 module.exports = async function (fastify, opts) {
-  fastify.post('/', { schema }, async function (request, reply) {
+  fastify.post('/', schema, async function (request, reply) {
     const machineId = request.body.machine_id
-    const itemId = request.body.item_id
     const itemStock = request.body.item_stock
 
     const stockCheckParams = {
@@ -54,10 +52,10 @@ module.exports = async function (fastify, opts) {
     }
 
     // SET ITEM STOCK IN DB
-    await setItemStockFromDB(machineId, itemId, itemStock, this.dynamo)
+    await setItemStockFromDB(machineId, itemStock, this.dynamo)
     stockCheckResponse = await this.dynamo.get(stockCheckParams)
-    if (stockCheckResponse.Item.stock[itemId] === itemStock) {
-      return reply.code(200).send(stockCheckResponse.Item.stock[itemId])
+    if (stockCheckResponse.Item.stock === itemStock) {
+      return reply.code(200).send(stockCheckResponse.Item.stock)
     } else {
       return reply.code(400).send({
         reason: 'Stock does not match expected value'
