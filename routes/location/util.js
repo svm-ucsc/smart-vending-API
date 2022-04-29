@@ -1,21 +1,19 @@
 'use strict'
 
 module.exports = {
-  async getMachines (itemId, dynamo) {
-    const stockCheckParams = {
+  async getLocationAndStock (dynamo) {
+    const locationStockCheckParams = {
       TableName: 'inventory',
       AttributesToGet: ['stock', 'location']
     }
-    const stockCheckResponse = await dynamo.scan(stockCheckParams)
-    return stockCheckResponse
+    const locationStockCheckResponse = await dynamo.scan(locationStockCheckParams)
+    return locationStockCheckResponse
   },
   getNearest (nearMachines, machineLocation, queryLocation, range) {
     const queryLat = queryLocation.latitude
     const queryLong = queryLocation.longitude
     const machineLat = machineLocation.latitude
     const machineLong = machineLocation.longitude
-
-    // const distanceRange = 16093 // 10 mi in m
 
     // CREDIT GOES TO THIS SITE:
     // https://www.movable-type.co.uk/scripts/latlong.html

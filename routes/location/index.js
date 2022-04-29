@@ -1,5 +1,5 @@
 'use strict'
-const { getMachines, getNearest } = require('./util')
+const { getLocationAndStock, getNearest } = require('./util')
 
 const schema = {
   description: 'Return a list of nearby vending machines and their locations. Range is in meters.',
@@ -42,24 +42,26 @@ module.exports = async function (fastify, opts) {
     const long = request.body.longitude
     const range = request.body.range
     const queryLocation = { latitude: lat, longitude: long }
+    let scanResponse = null
 
     const nearMachines = []
 
-    const scanResponse = await getMachines(itemId, this.dynamo)
+    scanResponse = await getLocationAndStock(this.dynamo)
 
     if (!scanResponse.Items) {
       return reply.code(400).send({
-        reason: 'No items with stock attribute were found'
+        reason: 'No items with stock attribute or location attribute were found'
       })
     }
 
     for (const index in scanResponse.Items) {
-      if (!scanResponse.Items[index].stock[itemId]) {
-        console.log('item out of stock')
-      } else {
+      if (itemId == "empty") {
+        getNearest(nearMachines, scanResponse.Items[index].location, queryLocation, range)
+      } else if (scanResponse.Items[index].stock[itemId]) {
         getNearest(nearMachines, scanResponse.Items[index].location, queryLocation, range)
       }
     }
+
     return reply.code(200).send(nearMachines)
   })
 }
