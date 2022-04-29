@@ -1,8 +1,28 @@
 'use strict'
 const { capturePayment, vendOrderTimeout } = require('../util')
 
+const schema =  {
+  description: 'Capture an order using Paypal API',
+  tags: ['routes'],
+  summary: 'Capture payment with Paypal before charging user',
+  body: {
+    order_id: { type: 'string' }
+  },
+  response: {
+    200: {
+      description: 'Successfully captured the payment', 
+      type: 'string'
+    },
+    400: {
+      description: 'Failure to capture payment',
+      type: 'string',
+      additionalProperties: false
+    }
+  }
+}
+
 module.exports = async function (fastify, opts) {
-  fastify.post('/', async function (request, reply) {
+  fastify.post('/', { schema }, async function (request, reply) {
     const orderId = request.body.order_id
 
     // 1. verify order status is PAYMENT_PENDING
