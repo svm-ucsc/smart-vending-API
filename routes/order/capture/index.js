@@ -11,6 +11,7 @@ const schema =  {
   response: {
     200: {
       description: 'Successfully captured the payment', 
+      type: 'object',
     },
     400: {
       description: 'Failure to capture payment',
@@ -84,6 +85,6 @@ module.exports = async function (fastify, opts) {
     setTimeout(vendOrderTimeout, timeoutMS, this.dynamo, orderId)
 
     // 7. RETURN ORDER ID
-    return reply.code(200).send()
+    return reply.code(200).send({orderId: orderId})
   })
 }
