@@ -11,12 +11,10 @@ const schema =  {
   response: {
     200: {
       description: 'Successfully captured the payment', 
-      type: 'string'
     },
     400: {
       description: 'Failure to capture payment',
-      type: 'string',
-      additionalProperties: false
+      type: 'object',
     }
   }
 }
@@ -43,7 +41,7 @@ module.exports = async function (fastify, opts) {
       })
     }
 
-    if (orderCheckResponse.Item.status !== 'PAYMENT_TIMEDOUT') {
+    if (orderCheckResponse.Item.status === 'PAYMENT_TIMEDOUT') {
       return reply.code(400).send({
         reason: 'payment has timed out'
       })
@@ -82,7 +80,7 @@ module.exports = async function (fastify, opts) {
     this.customMqttClient.submitOrder(orderId, orderCheckResponse.Item.machine_id, orderCheckResponse.Item.orderList)
 
     // 6. CREATE VEND_ORDER TIMEOUT TASK
-    const timeoutMS = 5000 // 5 seconds
+    const timeoutMS = 10000 // 10 seconds
     setTimeout(vendOrderTimeout, timeoutMS, this.dynamo, orderId)
 
     // 7. RETURN ORDER ID
