@@ -27,7 +27,7 @@ const schema = {
 }
 
 module.exports = async function (fastify, opts) {
-  fastify.post('/', schema, async function (request, reply) {
+  fastify.post('/', { schema }, async function (request, reply) {
     const machineId = request.body.machine_id
     const itemStock = request.body.item_stock
 
