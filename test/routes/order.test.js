@@ -19,7 +19,7 @@ test('valid order', async (t) => {
   })
   console.log(res.body)
   t.equal(res.statusCode, 200)
-  console.log("CLOSE 1")
+  console.log('CLOSE 1')
 })
 
 test('invalid machine_id', async (t) => {
@@ -34,7 +34,7 @@ test('invalid machine_id', async (t) => {
     }
   })
   t.equal(res.statusCode, 400)
-  console.log("CLOSE 2")
+  console.log('CLOSE 2')
 })
 
 test('invalid order', async (t) => {
@@ -49,7 +49,7 @@ test('invalid order', async (t) => {
     }
   })
   t.equal(res.statusCode, 400)
-  console.log("CLOSE 3")
+  console.log('CLOSE 3')
 })
 
 test('item does not exist order', async (t) => {
@@ -65,5 +65,5 @@ test('item does not exist order', async (t) => {
   })
   console.log(res.body)
   t.equal(res.statusCode, 400)
-  console.log("CLOSE 4")
+  console.log('CLOSE 4')
 })
