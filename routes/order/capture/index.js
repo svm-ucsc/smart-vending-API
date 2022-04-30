@@ -12,10 +12,16 @@ const schema =  {
     200: {
       description: 'Successfully captured the payment', 
       type: 'object',
+      properties: {
+        order_id: { type: 'string' },
+      }
     },
     400: {
       description: 'Failure to capture payment',
       type: 'object',
+      properties: {
+        reason: { type: 'string' },
+      }
     }
   }
 }
@@ -58,7 +64,13 @@ module.exports = async function (fastify, opts) {
 
     // 3. capture payment
 
-    capturePayment(paypalOrderId)
+    const captureRes = await capturePayment(paypalOrderId)
+
+    if(captureRes?.status !== 'COMPLETED') {
+      return reply.code(400).send({
+        reason: 'payment has not been authorized'
+      })
+    }
 
     // 4. set order status as VEND_PENDING
 
@@ -85,6 +97,6 @@ module.exports = async function (fastify, opts) {
     setTimeout(vendOrderTimeout, timeoutMS, this.dynamo, orderId)
 
     // 7. RETURN ORDER ID
-    return reply.code(200).send({orderId: orderId})
+    return reply.code(200).send({order_id: orderId})
   })
 }

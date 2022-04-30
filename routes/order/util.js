@@ -167,7 +167,7 @@ module.exports = {
       Key: {
         machine_id: orderCheckResponse.Item.machine_id
       },
-      AttributesToGet: ['stock']
+      AttributesToGet: ['stock', 'ordered_item']
     }
 
     const inventoryCheckResponse = await dynamo.get(inventoryCheckParams)

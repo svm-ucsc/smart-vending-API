@@ -112,7 +112,7 @@ module.exports = async function (fastify, opts) {
           missing_item: item
         })
       }
-      totalCost += itemInfoCall.itemCost
+      totalCost += itemInfoCall.itemCost * orderedItems[item]
     }
 
     // Validation complete
