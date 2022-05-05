@@ -90,7 +90,7 @@ module.exports = async function (fastify, opts) {
     await this.dynamo.update(updateOrderParams)
 
     // 5. SEND ORDER TO BROKER
-    this.customMqttClient.submitOrder(orderId, orderCheckResponse.Item.machine_id, orderCheckResponse.Item.orderList)
+    this.customMqttClient.submitOrder(orderId, orderCheckResponse.Item.machine_id, orderCheckResponse.Item.ordered_item)
 
     // 6. CREATE VEND_ORDER TIMEOUT TASK
     const timeoutMS = 10000 // 10 seconds
