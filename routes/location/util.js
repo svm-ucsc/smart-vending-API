@@ -4,7 +4,7 @@ module.exports = {
   async getLocationAndStock (dynamo) {
     const locationStockCheckParams = {
       TableName: 'inventory',
-      AttributesToGet: ['stock', 'location']
+      AttributesToGet: ['machine_id', 'stock', 'location']
     }
     const locationStockCheckResponse = await dynamo.scan(locationStockCheckParams)
     return locationStockCheckResponse

@@ -22,6 +22,7 @@ const schema = {
       location: {
         type: 'object',
         properties: {
+          machine_id: { type: 'string' },
           latitude: { type: 'string' },
           longitude: { type: 'string' }
         }
@@ -55,10 +56,14 @@ module.exports = async function (fastify, opts) {
     }
 
     for (const index in scanResponse.Items) {
-      if (itemId == "empty") {
-        getNearest(nearMachines, scanResponse.Items[index].location, queryLocation, range)
+      const locationObj = {
+        ...scanResponse.Items[index].location,
+        machine_id: scanResponse.Items[index].machine_id 
+      }
+      if (itemId == "empty") { // wtf
+        getNearest(nearMachines, locationObj, queryLocation, range)
       } else if (scanResponse.Items[index].stock[itemId]) {
-        getNearest(nearMachines, scanResponse.Items[index].location, queryLocation, range)
+        getNearest(nearMachines, locationObj, queryLocation, range)
       }
     }
 
