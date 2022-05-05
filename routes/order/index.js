@@ -125,7 +125,7 @@ module.exports = async function (fastify, opts) {
 
     // 3. CREATE NEW ORDER
     const orderId = v4()
-    await createNewOrder(orderId, paypalOrderRes.id, machineId, orderedItems, this.dynamo)
+    await createNewOrder(orderId, paypalOrderRes.id, machineId, orderList, this.dynamo)
 
     // 4. CREATE PAYMENT TIMEOUT TASK
     const timeoutMS = 180000 // three minutes
