@@ -18,15 +18,7 @@ const schema = {
   response: {
     200: {
       description: 'Returned the list of machines & locations sucessfully, number of machines in range are returned',
-      type: 'array',
-      location: {
-        type: 'object',
-        properties: {
-          machine_id: { type: 'string' },
-          latitude: { type: 'string' },
-          longitude: { type: 'string' }
-        }
-      }
+      type: 'array'
     },
     400: {
       description: 'Failed to find machines, failure returned as string',
@@ -58,9 +50,9 @@ module.exports = async function (fastify, opts) {
     for (const index in scanResponse.Items) {
       const locationObj = {
         ...scanResponse.Items[index].location,
-        machine_id: scanResponse.Items[index].machine_id 
+        machine_id: scanResponse.Items[index].machine_id
       }
-      if (itemId == "empty") { // wtf
+      if (itemId == 'empty') { // wtf
         getNearest(nearMachines, locationObj, queryLocation, range)
       } else if (scanResponse.Items[index].stock[itemId]) {
         getNearest(nearMachines, locationObj, queryLocation, range)

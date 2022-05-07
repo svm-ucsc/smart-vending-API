@@ -30,7 +30,7 @@ module.exports = {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 
     const d = R * c // in metres
-
+    machineLocation.distance = d
     if (d <= range) {
       nearMachines.push(machineLocation)
     } else {
