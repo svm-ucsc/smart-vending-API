@@ -93,7 +93,7 @@ module.exports = async function (fastify, opts) {
     this.customMqttClient.submitOrder(orderId, orderCheckResponse.Item.machine_id, orderCheckResponse.Item.ordered_item)
 
     // 6. CREATE VEND_ORDER TIMEOUT TASK
-    const timeoutMS = 10000 // 10 seconds
+    const timeoutMS = 120000 // 120 seconds
     setTimeout(vendOrderTimeout, timeoutMS, this.dynamo, orderId)
 
     // 7. RETURN ORDER ID
